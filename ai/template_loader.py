@@ -269,6 +269,36 @@ def _match_pattern(value: str, pattern: str) -> bool:
         return pattern in value
 
 
+def match_fields_by_hints(
+    field_hints: Dict[str, str],
+    recommended_fields: List[Dict[str, Any]],
+) -> Dict[str, str]:
+    """
+    根据 field_hints 的 pattern 匹配合适的字段。
+
+    Args:
+        field_hints: {placeholder: pattern} 映射，如 {"field": "mdl250_eq_*", "field1": "*_score"}
+        recommended_fields: 推荐字段列表，每个元素包含 field_id
+
+    Returns:
+        {placeholder: matched_field_id} 映射
+    """
+    result = {}
+    used_fields = set()  # 避免重复使用同一字段
+
+    for placeholder, pattern in field_hints.items():
+        for f in recommended_fields:
+            field_id = f.get("field_id", "")
+            if not field_id or field_id in used_fields:
+                continue
+            if _match_pattern(field_id, pattern):
+                result[placeholder] = field_id
+                used_fields.add(field_id)
+                break
+
+    return result
+
+
 def list_available_specialized_templates() -> List[str]:
     """列出所有可用的针对性模板数据集。"""
     if not DATASET_TEMPLATES_DIR.exists():

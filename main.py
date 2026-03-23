@@ -48,12 +48,10 @@ def print_menu():
     print("│  7. 查看回测报告                     │")
     print("│  8. 缓存状态                        │")
     print("├──── AI / 高级功能 ───────────────────┤")
-    print("│  9. AI 自动挖掘（旧版简易流程）          │")
-    print("│  10. 对话式研究（Agent 模式）          │")
-    print("│  11. Alpha Factory Pipeline（推荐/全流程）│")
-    print("│  12. 回测结果筛选/导出                 │")
-    print("│  13. Alpha 优化器（单独优化）          │")
-    print("│  14. Alpha 组合优化（批量组合创新）     │")
+    print("│  9. Alpha Factory Pipeline（推荐）   │")
+    print("│  10. 回测结果筛选/导出                │")
+    print("│  11. Alpha 优化器                    │")
+    print("│  12. Alpha 组合优化                  │")
     print("│  0. 退出                            │")
     print("└─────────────────────────────────────┘")
 
@@ -926,175 +924,6 @@ def display_strategy(strategy_config):
         print(f"\n🔧 回测参数:")
         for key, value in backtest_params.items():
             print(f"  - {key}: {value}")
-
-
-def handle_agent_mode():
-    """处理 Agent 对话模式"""
-    try:
-        from ai.agent.conversation import ConversationEngine
-        engine = ConversationEngine()
-        result = engine.start()
-        if result == "menu":
-            print("\n已切回菜单模式")
-    except ImportError as e:
-        print(f"❌ Agent 模块加载失败: {e}")
-        print("请确保已安装所有依赖: pip install -r requirements.txt")
-    except Exception as e:
-        print(f"❌ Agent 模式异常: {e}")
-        import traceback
-        traceback.print_exc()
-
-
-def handle_ai_mining():
-    """
-    AI 自动挖掘（重构后单流程）：
-    选择 region → 选择 dataset(s) → 构建 metadata → AI 分析 → 得到 signal → 模板生成 Alpha → 批量回测 → 筛选 → 自愈
-    """
-    print("\n⚠️ 提示：当前是旧版 AI 自动挖掘流程。"
-          "若你想使用模板调度/去重/聚类/研究报告等新功能，请优先尝试菜单 11：Alpha Factory Pipeline。")
-
-    from datetime import datetime
-    from ai.researcher_brain import AIResearcher
-    from ai.metadata_builder import build_metadata_for_region_datasets
-    from ai.data_analysis import analyze_metadata
-    from ai.alpha_generator import generate_alphas_with_operators
-    from ai.backtest_loop import run_full_loop
-    from config.settings import RESEARCH_DIR, AI_GENERATED_DIR
-
-    print("\n=== 🤖 AI 自动挖掘（metadata → signal → 模板生成 → 回测闭环）===")
-    print("流程: 选区域 → 选数据集 → AI 分析 metadata → 推荐字段 → 模板批量生成 → 回测 → 筛选 → 自愈")
-
-    if not SessionManager.is_logged_in():
-        print("❌ 请先登录（菜单 1）")
-        return
-    session = SessionManager.get_session()
-
-    # 1. 区域
-    print("\n可用区域:", ", ".join(REGION_DEFAULTS.keys()))
-    region = input("请输入区域代码 (如 USA/CHN/IND): ").strip().upper()
-    if not region:
-        print("❌ 区域代码不能为空")
-        return
-    defaults = REGION_DEFAULTS.get(region, {"universe": "TOP3000", "delay": 1})
-    universe = input(f"Universe (默认 {defaults['universe']}): ").strip() or defaults["universe"]
-    try:
-        delay = int(input(f"Delay (默认 {defaults['delay']}): ").strip() or str(defaults["delay"]))
-    except ValueError:
-        delay = defaults["delay"]
-
-    # 2. 数据集（支持多选，逗号分隔）
-    dataset_input = input("请输入数据集 ID，多个用逗号分隔 (如 pv1 或 pv1,analyst15): ").strip()
-    if not dataset_input:
-        print("❌ 至少输入一个数据集 ID")
-        return
-    dataset_ids = [x.strip() for x in dataset_input.split(",") if x.strip()]
-    if not dataset_ids:
-        print("❌ 数据集 ID 无效")
-        return
-
-    # 是否使用回测检测字段更新频率（更准确，首轮较慢，结果会缓存）
-    use_backtest_freq = input("\n是否用回测检测字段更新频率? (y/N，选 y 更准确但首轮较慢): ").strip().lower() == "y"
-
-    # 3. 构建 metadata
-    print(f"\n[Meta] 构建 metadata: {region} / {dataset_ids} ...")
-    if use_backtest_freq:
-        print("   （将用已有操作符对字段回测以得到准确更新频率，结果会缓存）")
-    try:
-        meta = build_metadata_for_region_datasets(
-            session, region, dataset_ids, DataManager,
-            universe=universe, delay=delay, force_refresh=False,
-            use_backtest_frequency=use_backtest_freq,
-            frequency_use_cache=True,
-        )
-    except Exception as e:
-        print(f"[Error] 构建 metadata 失败: {e}")
-        import traceback
-        traceback.print_exc()
-        return
-    dm, fm = meta["dataset_metadata"], meta["field_metadata"]
-    print(f"   dataset 级: {len(dm)} 条, field 级: {len(fm)} 条")
-
-    if not fm:
-        print("❌ 无字段数据，请检查数据集 ID 或缓存")
-        return
-
-    # 4. AI 分析（仅推荐字段 + 中和数据集）
-    try:
-        researcher = AIResearcher()
-        print(f"✅ AI 研究员已初始化（{researcher.provider}）")
-    except Exception as e:
-        print(f"❌ AI 研究员初始化失败: {e}")
-        return
-    print("\n🔍 AI 分析 metadata（仅输出推荐字段，不生成表达式）...")
-    analysis = analyze_metadata(dm, fm, region, researcher)
-    if analysis.get("error"):
-        print(f"❌ AI 分析报错: {analysis['error']}")
-        return
-    recommended = analysis.get("recommended_fields") or []
-    neutralization = analysis.get("neutralization_datasets") or []
-    print(f"  推荐字段: {len(recommended)} 个")
-    for i, r in enumerate(recommended[:15], 1):
-        print(f"    {i}. [{r.get('dataset_id')}] {r.get('field_id')} (priority={r.get('priority')}) {r.get('reason', '')[:40]}")
-    if neutralization:
-        print(f"  中和数据集推荐: {[n.get('dataset_id') for n in neutralization]}")
-
-    if not recommended:
-        print("❌ 无推荐字段，无法生成 Alpha")
-        return
-    go = input("\n是否继续模板生成并回测? (y/N): ").strip().lower()
-    if go != "y":
-        return
-
-    # 5. 模板生成 Alpha（含结构去重）
-    operators_df = DataManager.get_operators(session)
-    alpha_items = generate_alphas_with_operators(recommended, operators_df)
-    from ai.alpha_generator import get_last_dedup_stats
-    dedup_stats = get_last_dedup_stats()
-    if dedup_stats and dedup_stats.get("generated_alpha", 0) != dedup_stats.get("after_dedup", 0):
-        print(f"\n📐 模板生成 Alpha: 生成 {dedup_stats['generated_alpha']} 个 → 去重后 {dedup_stats['after_dedup']} 个")
-    else:
-        print(f"\n📐 模板生成 Alpha: {len(alpha_items)} 个")
-    if not alpha_items:
-        print("❌ 无可用模板或操作符不匹配")
-        return
-    # 可选：限制数量避免单次过多
-    max_alphas = 200
-    if len(alpha_items) > max_alphas:
-        alpha_items = alpha_items[:max_alphas]
-        print(f"  已截断为前 {max_alphas} 个")
-
-    # 6. 回测闭环（回测 → 筛选 → 自愈）
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = str(RESEARCH_DIR / f"{region}_aimining_{timestamp}")
-    dataset_tag = "_".join(sorted(dataset_ids))
-    print(f"\n🚀 开始批量回测（输出目录: {output_dir}）")
-    loop_result = run_full_loop(
-        session,
-        alpha_items,
-        region,
-        output_dir=output_dir,
-        dataset_id=dataset_ids[0],
-        ai_researcher=researcher,
-        run_self_heal_flag=True,
-        universe=universe,
-        delay=delay,
-    )
-    results = loop_result["results"]
-    high_value = loop_result["high_value"]
-    retry_results = loop_result.get("retry_results") or []
-    if retry_results:
-        results = results + retry_results
-        from config.settings import MIN_SHARPE, MAX_TURNOVER
-        retry_high = [r for r in retry_results if r.get("success") and r.get("sharpe", 0) >= MIN_SHARPE and r.get("turnover", 1) <= MAX_TURNOVER]
-        high_value = loop_result["high_value"] + retry_high
-
-    # 7. 归档与摘要
-    BacktestRunner.save_research(results, region, f"aimining_{dataset_tag}")
-    print(f"\n📊 回测完成: 共 {len(results)} 条, 高价值(Sharpe≥1.0 等) {len(high_value)} 条")
-    if high_value:
-        print("  Top 5:")
-        for i, r in enumerate(sorted(high_value, key=lambda x: x.get("sharpe", 0), reverse=True)[:5], 1):
-            print(f"    {i}. Sharpe={r.get('sharpe', 0):.3f} {r.get('expression', '')[:50]}")
 
 
 def handle_alpha_factory_pipeline():
@@ -2353,16 +2182,12 @@ def interactive_mode():
             elif choice == "8":
                 DataManager.print_cache_status()
             elif choice == "9":
-                handle_ai_mining()
-            elif choice == "10":
-                handle_agent_mode()
-            elif choice == "11":
                 handle_alpha_factory_pipeline()
-            elif choice == "12":
+            elif choice == "10":
                 handle_filter_backtest_results()
-            elif choice == "13":
+            elif choice == "11":
                 handle_alpha_optimizer()
-            elif choice == "14":
+            elif choice == "12":
                 handle_batch_combination_optimizer()
             else:
                 print("❌ 无效选项，请重新选择")
@@ -2408,15 +2233,6 @@ def cli_mode():
     rp_parser = subparsers.add_parser("report", help="查看Alpha报告")
     rp_parser.add_argument("--alpha-id", "-a", required=True, help="Alpha ID")
 
-    # agent 子命令 — 对话式 Agent 模式
-    subparsers.add_parser("agent", help="对话式 Agent 模式")
-
-    # auto 子命令 — 全自动模式
-    auto_parser = subparsers.add_parser("auto", help="全自动研究模式")
-    auto_parser.add_argument("region", help="区域代码（如 USA）")
-    auto_parser.add_argument("datasets", nargs="+", help="数据集ID（如 pv1 analyst15）")
-    auto_parser.add_argument("--goal", default="自动量化因子挖掘", help="研究目标描述")
-
     # pipeline 子命令 — Alpha Factory 全流程
     pipe_parser = subparsers.add_parser("pipeline", help="Alpha Factory Pipeline（全流程 + research_report.json）")
     pipe_parser.add_argument("--region", "-r", required=True, help="区域代码（如 USA）")
@@ -2454,15 +2270,7 @@ def cli_mode():
     if args.command is None:
         return False  # 没有子命令，进入交互模式
 
-    # agent/auto 模式不需要预先登录
-    if args.command == "agent":
-        handle_agent_mode()
-        return True
-    elif args.command == "auto":
-        from ai.agent.conversation import start_agent_auto
-        start_agent_auto(args.region.upper(), args.datasets, args.goal)
-        return True
-    elif args.command == "pipeline":
+    if args.command == "pipeline":
         session = SessionManager.login()
         from config.settings import RESEARCH_DIR
         from pathlib import Path

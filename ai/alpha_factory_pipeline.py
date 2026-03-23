@@ -215,7 +215,8 @@ def step_template_schedule(
     dataset_id: Optional[str] = None,
     templates_path: Optional[str] = None,
     recommended_fields: Optional[List[Dict[str, Any]]] = None,
-) -> Tuple[List[str], Dict[str, int]]:
+    return_metadata: bool = True,
+) -> Tuple[List, Dict[str, int]]:
     """
     随机选择 20~30 个模板，覆盖不同类别。可独立调用。
 
@@ -226,11 +227,14 @@ def step_template_schedule(
         dataset_id: 数据集 ID（用于 specialized 模式）
         templates_path: 自定义模板路径
         recommended_fields: 推荐字段列表（用于智能选择 VECTOR 模板）
+        return_metadata: 是否返回完整模板对象（含 field_hints），默认 True
 
     Returns:
         (scheduled_templates, actual_distribution)
+        - 当 return_metadata=True 时，返回完整模板对象列表
+        - 当 return_metadata=False 时，返回表达式字符串列表（向后兼容）
     """
-    from ai.template_scheduler import schedule_templates
+    from ai.template_scheduler import schedule_templates, schedule_templates_with_metadata
     from ai.template_loader import load_mixed_templates
 
     # 检查是否有 VECTOR 类型字段
@@ -250,41 +254,75 @@ def step_template_schedule(
         include_vector=has_event_fields,
     )
 
-    # 提取表达式
-    template_expressions = []
-    for t in templates:
-        expr = t.get("expression") or ""
-        if expr:
-            template_expressions.append(expr)
-
-    if not template_expressions:
+    if not templates:
         logger.warning(f"模板加载失败或为空，来源: {source}")
         return [], {}
 
-    logger.info(f"模板调度: 加载 {len(template_expressions)} 个模板，来源: {source}, VECTOR支持={has_event_fields}")
+    logger.info(f"模板调度: 加载 {len(templates)} 个模板，来源: {source}, VECTOR支持={has_event_fields}")
 
-    return schedule_templates(
-        template_expressions,
-        templates_per_round=templates_per_round,
-        distribution=distribution,
-    )
+    # 根据返回类型选择调度函数
+    if return_metadata:
+        return schedule_templates_with_metadata(
+            templates,
+            templates_per_round=templates_per_round,
+            distribution=distribution,
+        )
+    else:
+        # 向后兼容：只返回表达式字符串
+        template_expressions = [t.get("expression") for t in templates if t.get("expression")]
+        return schedule_templates(
+            template_expressions,
+            templates_per_round=templates_per_round,
+            distribution=distribution,
+        )
 
 
 # ==================== 步骤 3：Alpha 批量生成 ====================
 def step_alpha_generation(
     recommended_fields: List[Dict[str, Any]],
-    template_expressions: List[str],
+    template_expressions_or_templates: List,
     template_params: Optional[Dict[str, List]] = None,
     max_two_field_pairs: int = 30,
 ) -> List[Dict[str, Any]]:
-    """从推荐字段 + 模板表达式生成 Alpha 列表（未去重）。可独立调用。"""
-    from ai.alpha_generator import generate_alphas_from_expressions
-    return generate_alphas_from_expressions(
-        template_expressions,
-        recommended_fields,
-        template_params=template_params,
-        max_two_field_pairs=max_two_field_pairs,
-    )
+    """
+    从推荐字段 + 模板生成 Alpha 列表（未去重）。可独立调用。
+
+    支持两种输入格式：
+    - 表达式字符串列表（向后兼容）
+    - 带 field_hints 的模板对象列表（优先）
+
+    Args:
+        recommended_fields: 推荐字段列表
+        template_expressions_or_templates: 模板表达式列表或模板对象列表
+        template_params: 模板参数
+        max_two_field_pairs: 双字段组合上限
+
+    Returns:
+        Alpha 列表
+    """
+    if not template_expressions_or_templates:
+        return []
+
+    # 检测输入类型
+    first_item = template_expressions_or_templates[0]
+    if isinstance(first_item, dict) and "expression" in first_item:
+        # 新格式：带 field_hints 的模板对象列表
+        from ai.alpha_generator import generate_alphas_from_templates_with_hints
+        return generate_alphas_from_templates_with_hints(
+            template_expressions_or_templates,
+            recommended_fields,
+            template_params=template_params,
+            max_two_field_pairs=max_two_field_pairs,
+        )
+    else:
+        # 旧格式：表达式字符串列表（向后兼容）
+        from ai.alpha_generator import generate_alphas_from_expressions
+        return generate_alphas_from_expressions(
+            template_expressions_or_templates,
+            recommended_fields,
+            template_params=template_params,
+            max_two_field_pairs=max_two_field_pairs,
+        )
 
 
 # ==================== 步骤 4：Alpha 去重 ====================

@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-字段更新频率检测器 - 基于回测的自动化频率推断
-通过构建特定的 alpha 表达式并回测，分析字段的实际更新频率
+[备用工具] 字段更新频率检测器 - 基于回测的自动化频率推断
+
+状态: 备用（当前 Pipeline 使用 ai/frequency_inference.py 基于规则的快速推断）
+
+用途: 当需要精确检测字段更新频率时使用，通过构建特定 alpha 表达式并回测来分析。
+
+注意: 此方法较慢（需要实际回测），但结果更精确。日常使用推荐 frequency_inference.py。
 """
 import json
 import logging

@@ -170,3 +170,105 @@ def get_scheduled_templates(
         distribution=distribution,
     )
     return selected
+
+
+def schedule_templates_with_metadata(
+    templates: List[Dict],
+    templates_per_round: Optional[int] = None,
+    distribution: Optional[Dict[str, int]] = None,
+    rng: Optional[random.Random] = None,
+) -> Tuple[List[Dict], Dict[str, int]]:
+    """
+    调度模板（保留完整元数据，包括 field_hints）。
+
+    与 schedule_templates 类似，但返回完整的模板对象而非仅表达式。
+    这样可以保留 field_hints 等元数据，用于智能字段匹配。
+
+    Args:
+        templates: 完整模板对象列表，每个元素包含 expression, field_hints 等
+        templates_per_round: 每轮目标数量
+        distribution: 各类别目标数量
+        rng: 随机数生成器
+
+    Returns:
+        (selected_templates, actual_distribution)
+        - selected_templates: 选中的模板对象列表（保留 field_hints）
+        - actual_distribution: 本轮实际各类别选中数量
+    """
+    if rng is None:
+        rng = random
+    try:
+        from config.alpha_config import templates_per_round as cfg_per_round
+        from config.alpha_config import TEMPLATE_SCHEDULE_DISTRIBUTION as cfg_dist
+    except Exception:
+        cfg_per_round = 25
+        cfg_dist = {"time_series": 10, "cross_section": 5, "pair": 5, "complex": 5}
+
+    raw_per_round = templates_per_round if templates_per_round is not None else cfg_per_round
+    if isinstance(raw_per_round, (list, tuple)) and len(raw_per_round) >= 2:
+        per_round = rng.randint(int(raw_per_round[0]), int(raw_per_round[1]))
+    else:
+        per_round = int(raw_per_round)
+    dist = distribution if distribution is not None else dict(cfg_dist)
+    dist_sum = sum(dist.values())
+    if dist_sum != per_round and dist_sum > 0:
+        scale = per_round / dist_sum
+        dist = {k: max(0, int(round(v * scale))) for k, v in dist.items()}
+        if sum(dist.values()) != per_round:
+            k_max = max(dist, key=dist.get)
+            dist[k_max] = dist[k_max] + (per_round - sum(dist.values()))
+
+    # 按类别分组模板对象
+    groups: Dict[str, List[Dict]] = {
+        "time_series": [],
+        "cross_section": [],
+        "pair": [],
+        "complex": [],
+    }
+    for t in templates:
+        expr = t.get("expression", "")
+        cat = get_template_category(expr)
+        if cat in groups:
+            groups[cat].append(t)
+        else:
+            groups["cross_section"].append(t)
+
+    selected: List[Dict] = []
+    actual: Dict[str, int] = {}
+
+    for category in ("time_series", "cross_section", "pair", "complex"):
+        pool = groups.get(category, [])
+        n_want = min(dist.get(category, 0), len(pool))
+        if n_want <= 0 or not pool:
+            actual[category] = 0
+            continue
+        if n_want >= len(pool):
+            chosen = list(pool)
+        else:
+            chosen = rng.sample(pool, n_want)
+        selected.extend(chosen)
+        actual[category] = len(chosen)
+
+    # 若因某类不足导致总数 < per_round，从剩余模板中随机补足
+    selected_exprs = {t.get("expression") for t in selected}
+    shortfall = per_round - len(selected)
+    if shortfall > 0:
+        remaining = [t for t in templates if t.get("expression") not in selected_exprs]
+        if remaining:
+            n_extra = min(shortfall, len(remaining))
+            extra = rng.sample(remaining, n_extra)
+            selected.extend(extra)
+            for t in extra:
+                cat = get_template_category(t.get("expression", ""))
+                actual[cat] = actual.get(cat, 0) + 1
+
+    rng.shuffle(selected)
+    logger.info(
+        "模板调度(带元数据): 本轮 %s 个 (time_series=%s, cross_section=%s, pair=%s, complex=%s)",
+        len(selected),
+        actual.get("time_series", 0),
+        actual.get("cross_section", 0),
+        actual.get("pair", 0),
+        actual.get("complex", 0),
+    )
+    return selected, actual

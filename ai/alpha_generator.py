@@ -294,6 +294,127 @@ def generate_alphas_from_expressions(
     return result
 
 
+def generate_alphas_from_templates_with_hints(
+    templates_with_hints: List[Dict[str, Any]],
+    recommended_fields: List[Dict[str, Any]],
+    template_params: Optional[Dict[str, List]] = None,
+    max_two_field_pairs: int = 80,
+) -> List[Dict[str, Any]]:
+    """
+    从带 field_hints 的模板对象 + 推荐字段生成 Alpha 列表。
+
+    与 generate_alphas_from_expressions 的区别：
+    - 支持 field_hints 元数据，根据 pattern 匹配特定字段
+    - 例如：模板指定 field_hints={"field1": "mdl250_eq_short"}，则只使用匹配的字段
+
+    Args:
+        templates_with_hints: 模板对象列表，每个元素包含 expression, field_hints 等
+        recommended_fields: [{"field_id", "dataset_id", "normalized_type", ...}, ...]
+        template_params: 同 generate_alphas
+        max_two_field_pairs: 双字段模板最多 (field1, field2) 组合数
+
+    Returns:
+        [{"expression", "decay", "truncation", "neutralization"}, ...]
+    """
+    from ai.template_loader import match_fields_by_hints
+
+    if template_params is None:
+        template_params = TEMPLATE_PARAMS.copy()
+    windows = template_params.get("window", [5, 10, 20])
+    decays = template_params.get("decay", [3, 5])
+    truncations = template_params.get("truncation", [0.01, 0.05])
+    neutralizations = template_params.get("neutralization", ["INDUSTRY", "SECTOR", "MARKET"])
+
+    # 按类型过滤：仅使用 vector 类型字段用于数值计算
+    numeric_fields = filter_fields_by_type(recommended_fields, list(NUMERIC_FIELD_TYPES))
+
+    # 提取字段 ID 列表
+    single_fields = []
+    for f in numeric_fields:
+        fid = (f.get("field_id") or f.get("field_name") or "").strip()
+        if fid:
+            single_fields.append(fid)
+
+    # 双字段组合（用于无 field_hints 的双字段模板）
+    two_field_pairs = []
+    if len(single_fields) >= 2:
+        for i, a in enumerate(single_fields):
+            for b in single_fields[i + 1:]:
+                two_field_pairs.append((a, b))
+                if len(two_field_pairs) >= max_two_field_pairs:
+                    break
+            if len(two_field_pairs) >= max_two_field_pairs:
+                break
+
+    result = []
+    for template in templates_with_hints:
+        expr_tpl = template.get("expression") if isinstance(template, dict) else ""
+        field_hints = template.get("field_hints", {}) if isinstance(template, dict) else {}
+
+        if not expr_tpl or not isinstance(expr_tpl, str):
+            continue
+
+        is_pair = "{field1}" in expr_tpl and "{field2}" in expr_tpl
+        is_multi = "{field3}" in expr_tpl  # 三字段模板
+
+        # 根据 field_hints 匹配字段
+        if field_hints:
+            matched = match_fields_by_hints(field_hints, numeric_fields)
+
+            if is_multi:
+                # 三字段模板
+                f1 = matched.get("field1", single_fields[0] if single_fields else "")
+                f2 = matched.get("field2", single_fields[1] if len(single_fields) > 1 else "")
+                f3 = matched.get("field3", single_fields[2] if len(single_fields) > 2 else "")
+                if f1 and f2 and f3:
+                    for w in windows:
+                        sub = _substitute_expression(
+                            expr_tpl,
+                            {"field1": f1, "field2": f2, "field3": f3, "window": w},
+                        )
+                        for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
+                            result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
+            elif is_pair:
+                # 双字段模板
+                f1 = matched.get("field1", single_fields[0] if single_fields else "")
+                f2 = matched.get("field2", single_fields[1] if len(single_fields) > 1 else "")
+                if f1 and f2:
+                    for w in windows:
+                        sub = _substitute_expression(
+                            expr_tpl,
+                            {"field1": f1, "field2": f2, "window": w, "window1": w, "window2": w},
+                        )
+                        for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
+                            result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
+            else:
+                # 单字段模板
+                f = matched.get("field", single_fields[0] if single_fields else "")
+                if f:
+                    for w in windows:
+                        sub = _substitute_expression(expr_tpl, {"field": f, "window": w, "window2": w})
+                        for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
+                            result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
+        else:
+            # 无 field_hints：使用原有逻辑
+            if is_pair:
+                for (f1, f2) in two_field_pairs:
+                    for w in windows:
+                        sub = _substitute_expression(
+                            expr_tpl,
+                            {"field1": f1, "field2": f2, "window": w, "window1": w, "window2": w},
+                        )
+                        for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
+                            result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
+            else:
+                for field in single_fields:
+                    for w in windows:
+                        sub = _substitute_expression(expr_tpl, {"field": field, "window": w, "window2": w})
+                        for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
+                            result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
+
+    return result
+
+
 def generate_alphas_with_operators(
     recommended_fields: List[Dict[str, Any]],
     operators_df,
