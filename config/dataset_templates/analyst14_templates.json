@@ -1,0 +1,182 @@
+[
+  {
+    "name": "forecast_dispersion",
+    "expression": "rank(({field1} - {field2}) / (abs({field3}) + 0.001))",
+    "description": "预测分歧度：(high - low) / mean，分歧大预示高波动或信息不对称",
+    "fields_required": 3,
+    "field_types": [["vector"], ["vector"], ["vector"]],
+    "field_hints": {"field1": "anl14_high_*", "field2": "anl14_low_*", "field3": "anl14_mean_*"},
+    "operators": ["rank", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "high_low_ratio",
+    "expression": "rank({field1} / ({field2} + 0.001))",
+    "description": "高/低预测比率，接近1说明分析师意见一致",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl14_high_*", "field2": "anl14_low_*"},
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "mean_median_deviation",
+    "expression": "rank(abs({field1} - {field2}) / (abs({field1}) + 0.001))",
+    "description": "均值与中位数偏离度，反映预测分布偏态",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl14_mean_*", "field2": "anl14_median_*"},
+    "operators": ["rank", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "forecast_volatility",
+    "expression": "rank({field} / (abs({field2}) + 0.001))",
+    "description": "预测波动率：stddev / mean（变异系数）",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field": "anl14_stddev_*", "field2": "anl14_mean_*"},
+    "operators": ["rank", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "analyst_attention",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "分析师关注度变化：numofests 的时间变化",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_numofests_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "forecast_momentum",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "预测动量：均值预测的变化方向",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_mean_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "forecast_reversal",
+    "expression": "rank(-ts_delta({field}, {window}))",
+    "description": "预测反转：均值预测变化的反向",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_mean_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "dispersion_change",
+    "expression": "rank(ts_delta({field1} - {field2}, {window}))",
+    "description": "分歧度变化：high-low 差值的时间变化",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl14_high_*", "field2": "anl14_low_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "pair"
+  },
+  {
+    "name": "forecast_zscore",
+    "expression": "rank(ts_zscore({field}, {window}))",
+    "description": "预测值的历史 Z-score，识别异常预测",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_mean_*"},
+    "operators": ["rank", "ts_zscore"],
+    "category": "time_series"
+  },
+  {
+    "name": "quarter_year_spread",
+    "expression": "rank(({field1} - {field2}) / (abs({field2}) + 0.001))",
+    "description": "季度-年度预测差异：短期 vs 长期预期分歧",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl14_mean_*_fp1", "field2": "anl14_mean_*_fy1"},
+    "operators": ["rank", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "analyst_consensus_strength",
+    "expression": "rank(-{field})",
+    "description": "共识强度：stddev 越低共识越强",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_stddev_*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "forecast_acceleration",
+    "expression": "rank(ts_delta(ts_delta({field}, 1), {window}))",
+    "description": "预测加速度：预测变化的变化率",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_mean_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "complex"
+  },
+  {
+    "name": "attention_dispersion_interaction",
+    "expression": "rank(ts_corr({field1}, {field2}, {window}))",
+    "description": "关注度与分歧度的相关性",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl14_numofests_*", "field2": "anl14_stddev_*"},
+    "operators": ["rank", "ts_corr"],
+    "category": "pair"
+  },
+  {
+    "name": "forecast_rank_momentum",
+    "expression": "rank(ts_rank({field}, {window}))",
+    "description": "预测值时序排名的截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_mean_*"},
+    "operators": ["rank", "ts_rank"],
+    "category": "time_series"
+  },
+  {
+    "name": "mean_reversion_signal",
+    "expression": "rank({field} - ts_mean({field}, {window}))",
+    "description": "预测值偏离历史均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_mean_*"},
+    "operators": ["rank", "ts_mean"],
+    "category": "time_series"
+  },
+  {
+    "name": "stddev_momentum",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "分歧度动量：stddev 的变化方向",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_stddev_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "high_low_correlation",
+    "expression": "rank(ts_corr({field1}, {field2}, {window}))",
+    "description": "高/低预测相关性，识别预测一致性变化",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl14_high_*", "field2": "anl14_low_*"},
+    "operators": ["rank", "ts_corr"],
+    "category": "pair"
+  },
+  {
+    "name": "forecast_decay",
+    "expression": "rank(ts_decay_linear({field}, {window}))",
+    "description": "衰减加权预测值，近期预测权重更高",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl14_mean_*"},
+    "operators": ["rank", "ts_decay_linear"],
+    "category": "time_series"
+  }
+]

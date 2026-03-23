@@ -1,0 +1,137 @@
+{
+  "dataset_id": "analyst69",
+  "dataset_name": "BeST Estimates",
+  "description": "Bloomberg BeST 分析师预测数据，包含 EPS 预测、目标价、分析师评级、收入预测、盈利指标、长期增长预测等全面的分析师预期数据",
+  "field_type": "event",
+  "field_type_note": "所有关键字段均为 VECTOR 类型（BRAIN 平台的 event 类型），需要使用 vec_avg/vec_sum 等操作符转换后才能使用数学运算（加减乘除）和 ts_* 时间序列操作符",
+  "research_directions": [
+    {
+      "name": "EPS 修正动量",
+      "description": "EPS 预测的上调/下调变化。best_eps_4wk_up/dn 为 4 周内上调/下调的分析师数量，best_eps_chg_pct 为 EPS 变化百分比。",
+      "field_patterns": ["anl69_best_eps_4wk_up", "anl69_best_eps_4wk_dn", "anl69_best_eps_chg_pct"],
+      "example_combinations": [
+        {"combo": "vec_avg(anl69_best_eps_4wk_up) - vec_avg(anl69_best_eps_4wk_dn)", "logic": "EPS 净修正"},
+        {"combo": "vec_avg(anl69_best_eps_4wk_up) / (vec_avg(anl69_best_eps_4wk_dn) + 1)", "logic": "上调/下调比率"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta", "ts_mean"],
+      "alpha_logic": "上调减下调的净数量，正值预示分析师看好 EPS 前景。必须用 vec_avg 转换后才能计算。"
+    },
+    {
+      "name": "目标价信号",
+      "description": "分析师目标价预测。best_target_price 为目标价均值，best_target_hi/lo 为最高/最低目标价。",
+      "field_patterns": ["anl69_best_target_price", "anl69_best_target_hi", "anl69_best_target_lo", "anl69_best_target_4wk_chg"],
+      "example_combinations": [
+        {"combo": "vec_avg(anl69_best_target_hi) - vec_avg(anl69_best_target_lo)", "logic": "目标价分歧度"},
+        {"combo": "vec_avg(anl69_best_target_4wk_chg)", "logic": "目标价变化"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta"],
+      "alpha_logic": "目标价变化直接使用 vec_avg 后排名。"
+    },
+    {
+      "name": "分析师评级共识",
+      "description": "分析师买入/卖出/持有推荐。tot_buy_rec/tot_sell_rec/tot_hold_rec 为各类推荐数量。",
+      "field_patterns": ["anl69_best_analyst_rating", "anl69_tot_buy_rec", "anl69_tot_sell_rec", "anl69_tot_hold_rec"],
+      "example_combinations": [
+        {"combo": "vec_avg(anl69_tot_buy_rec) - vec_avg(anl69_tot_sell_rec)", "logic": "净买入推荐"},
+        {"combo": "vec_avg(anl69_tot_buy_rec) / (vec_avg(anl69_tot_buy_rec) + vec_avg(anl69_tot_sell_rec) + vec_avg(anl69_tot_hold_rec) + 1)", "logic": "买入推荐占比"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta"],
+      "alpha_logic": "买入推荐多说明分析师看好。必须用 vec_avg 转换。"
+    },
+    {
+      "name": "收入预测修正",
+      "description": "收入预测变化。best_sales 为收入预测均值，best_sales_4wk_up/dn 为 4 周内上调/下调的分析师数量。",
+      "field_patterns": ["anl69_best_sales", "anl69_best_sales_4wk_up", "anl69_best_sales_4wk_dn", "anl69_best_sales_chg_pct"],
+      "example_combinations": [
+        {"combo": "vec_avg(anl69_best_sales_4wk_up) - vec_avg(anl69_best_sales_4wk_dn)", "logic": "收入净修正"},
+        {"combo": "vec_avg(anl69_best_sales_chg_pct)", "logic": "收入变化百分比"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta", "ts_mean"],
+      "alpha_logic": "收入预测上调为正面信号。"
+    },
+    {
+      "name": "EPS 分歧度",
+      "description": "分析师 EPS 预测的分歧程度。eps_best_eps_hi/lo 为最高/最低 EPS 预测，best_eps_stddev 为标准差。",
+      "field_patterns": ["anl69_eps_best_eps_hi", "anl69_eps_best_eps_lo", "anl69_best_eps_stddev", "anl69_eps_best_eps"],
+      "example_combinations": [
+        {"combo": "vec_avg(anl69_eps_best_eps_hi) - vec_avg(anl69_eps_best_eps_lo)", "logic": "EPS 预测分歧范围"},
+        {"combo": "vec_avg(anl69_best_eps_stddev) / (abs(vec_avg(anl69_eps_best_eps)) + 0.001)", "logic": "EPS 变异系数"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "abs"],
+      "alpha_logic": "分歧度大可能预示高波动。"
+    },
+    {
+      "name": "盈利能力修正",
+      "description": "EBIT/EBITDA/ROE/ROA 等盈利指标的预测修正。",
+      "field_patterns": ["anl69_best_ebitda", "anl69_best_ebitda_4wk_chg", "anl69_best_roe", "anl69_best_roe_4wk_chg"],
+      "example_fields": ["anl69_best_ebitda_4wk_chg", "anl69_best_roe_4wk_chg"],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta", "ts_mean"],
+      "alpha_logic": "盈利预测上调为正面信号。"
+    },
+    {
+      "name": "长期增长预期",
+      "description": "长期 EPS 增长率预测。best_ltg_eps 为长期增长预测，best_ltg_4wk_up/dn 为 4 周内上调/下调的分析师数量。",
+      "field_patterns": ["anl69_best_ltg_eps", "anl69_best_ltg_4wk_up", "anl69_best_ltg_4wk_dn", "anl69_best_ltg_hi", "anl69_best_ltg_lo"],
+      "example_combinations": [
+        {"combo": "vec_avg(anl69_best_ltg_4wk_up) - vec_avg(anl69_best_ltg_4wk_dn)", "logic": "长期增长净修正"},
+        {"combo": "vec_avg(anl69_best_ltg_eps)", "logic": "长期增长率"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta"],
+      "alpha_logic": "长期增长预期上调说明分析师对公司长期前景看好。"
+    },
+    {
+      "name": "GAAP vs Non-GAAP",
+      "description": "GAAP EPS 与 Non-GAAP EPS 的差异。",
+      "field_patterns": ["anl69_eps_best_eps_gaap", "anl69_eps_best_eps"],
+      "example_combinations": [
+        {"combo": "vec_avg(anl69_eps_best_eps) - vec_avg(anl69_eps_best_eps_gaap)", "logic": "Non-GAAP 与 GAAP 差异"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "abs"],
+      "alpha_logic": "GAAP 与 Non-GAAP 差异大可能反映一次性项目。"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "anl69_best_eps_4wk_up", "coverage": 1.00, "type": "VECTOR", "reason": "EPS 4周上调数量，核心修正信号"},
+    {"field_id": "anl69_best_eps_4wk_dn", "coverage": 1.00, "type": "VECTOR", "reason": "EPS 4周下调数量，与上调配对"},
+    {"field_id": "anl69_best_eps_chg_pct", "coverage": 1.00, "type": "VECTOR", "reason": "EPS 变化百分比，直接使用"},
+    {"field_id": "anl69_best_target_price", "coverage": 1.00, "type": "VECTOR", "reason": "目标价均值，隐含上涨空间"},
+    {"field_id": "anl69_best_target_4wk_chg", "coverage": 1.00, "type": "VECTOR", "reason": "目标价 4 周变化"},
+    {"field_id": "anl69_best_target_hi", "coverage": 1.00, "type": "VECTOR", "reason": "最高目标价"},
+    {"field_id": "anl69_best_target_lo", "coverage": 1.00, "type": "VECTOR", "reason": "最低目标价"},
+    {"field_id": "anl69_tot_buy_rec", "coverage": 1.00, "type": "VECTOR", "reason": "买入推荐数"},
+    {"field_id": "anl69_tot_sell_rec", "coverage": 1.00, "type": "VECTOR", "reason": "卖出推荐数"},
+    {"field_id": "anl69_tot_hold_rec", "coverage": 1.00, "type": "VECTOR", "reason": "持有推荐数"},
+    {"field_id": "anl69_best_analyst_rating", "coverage": 1.00, "type": "VECTOR", "reason": "综合分析师评级"},
+    {"field_id": "anl69_best_sales_4wk_up", "coverage": 1.00, "type": "VECTOR", "reason": "收入 4 周上调数量"},
+    {"field_id": "anl69_best_sales_4wk_dn", "coverage": 1.00, "type": "VECTOR", "reason": "收入 4 周下调数量"},
+    {"field_id": "anl69_best_sales_chg_pct", "coverage": 1.00, "type": "VECTOR", "reason": "收入变化百分比"},
+    {"field_id": "anl69_eps_best_eps_hi", "coverage": 1.00, "type": "VECTOR", "reason": "EPS 预测最高值"},
+    {"field_id": "anl69_eps_best_eps_lo", "coverage": 1.00, "type": "VECTOR", "reason": "EPS 预测最低值"},
+    {"field_id": "anl69_best_eps_stddev", "coverage": 0.97, "type": "VECTOR", "reason": "EPS 预测标准差"},
+    {"field_id": "anl69_eps_best_eps", "coverage": 1.00, "type": "VECTOR", "reason": "EPS 预测均值"},
+    {"field_id": "anl69_best_ebitda_4wk_chg", "coverage": 0.87, "type": "VECTOR", "reason": "EBITDA 4 周变化"},
+    {"field_id": "anl69_best_roe_4wk_chg", "coverage": 0.87, "type": "VECTOR", "reason": "ROE 4 周变化"},
+    {"field_id": "anl69_best_ltg_eps", "coverage": 0.79, "type": "VECTOR", "reason": "长期 EPS 增长率"},
+    {"field_id": "anl69_best_ltg_4wk_up", "coverage": 1.00, "type": "VECTOR", "reason": "长期增长上调数量"},
+    {"field_id": "anl69_best_ltg_4wk_dn", "coverage": 1.00, "type": "VECTOR", "reason": "长期增长下调数量"},
+    {"field_id": "anl69_eps_best_eps_gaap", "coverage": 0.99, "type": "VECTOR", "reason": "GAAP EPS"}
+  ],
+  "field_pairs": [
+    {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn", "logic": "EPS 净修正"},
+    {"field1": "anl69_best_target_hi", "field2": "anl69_best_target_lo", "logic": "目标价分歧度"},
+    {"field1": "anl69_tot_buy_rec", "field2": "anl69_tot_sell_rec", "logic": "净买入推荐"},
+    {"field1": "anl69_best_sales_4wk_up", "field2": "anl69_best_sales_4wk_dn", "logic": "收入净修正"},
+    {"field1": "anl69_eps_best_eps_hi", "field2": "anl69_eps_best_eps_lo", "logic": "EPS 预测分歧"},
+    {"field1": "anl69_best_ltg_4wk_up", "field2": "anl69_best_ltg_4wk_dn", "logic": "长期增长净修正"},
+    {"field1": "anl69_eps_best_eps", "field2": "anl69_eps_best_eps_gaap", "logic": "Non-GAAP vs GAAP"},
+    {"field1": "anl69_best_ltg_hi", "field2": "anl69_best_ltg_lo", "logic": "长期增长分歧"}
+  ],
+  "guidance_prompt": "**Analyst69 数据集研究方向指引（重要）：**\n此数据集为 Bloomberg BeST 分析师预测数据。**所有关键字段均为 VECTOR 类型（event 类型），必须使用 vec_avg 转换后才能进行数学运算！**\n\n**重要规则：**\n- VECTOR 类型字段必须用 vec_avg(field) 转换后才能使用 +、-、*、/ 等数学运算\n- 时间序列操作符也需要先 vec_avg 转换\n- 错误示例：`{field1} - {field2}` （会报错：Operator subtract does not support event inputs）\n- 正确示例：`vec_avg({field1}) - vec_avg({field2})`\n\n**研究方向 1：EPS 修正动量（核心）**\n- 配对：`anl69_best_eps_4wk_up` 与 `anl69_best_eps_4wk_dn`\n- 正确表达式：`rank(vec_avg(anl69_best_eps_4wk_up) - vec_avg(anl69_best_eps_4wk_dn))`\n\n**研究方向 2：目标价信号**\n- 字段：`anl69_best_target_price`, `anl69_best_target_hi/lo`, `anl69_best_target_4wk_chg`\n- 正确表达式：`rank(vec_avg(anl69_best_target_4wk_chg))`\n\n**研究方向 3：分析师评级共识**\n- 配对：`anl69_tot_buy_rec` 与 `anl69_tot_sell_rec`\n- 正确表达式：`rank(vec_avg(anl69_tot_buy_rec) - vec_avg(anl69_tot_sell_rec))`\n\n**研究方向 4：收入预测修正**\n- 配对：`anl69_best_sales_4wk_up` 与 `anl69_best_sales_4wk_dn`\n- 正确表达式：`rank(vec_avg(anl69_best_sales_4wk_up) - vec_avg(anl69_best_sales_4wk_dn))`\n\n**研究方向 5：预测分歧度**\n- 配对：`anl69_eps_best_eps_hi` 与 `anl69_eps_best_eps_lo`\n- 正确表达式：`rank(vec_avg(anl69_eps_best_eps_hi) - vec_avg(anl69_eps_best_eps_lo))`\n\n**研究方向 6：长期增长预期**\n- 字段：`anl69_best_ltg_eps`, `anl69_best_ltg_4wk_up/dn`\n- 正确表达式：`rank(vec_avg(anl69_best_ltg_4wk_up) - vec_avg(anl69_best_ltg_4wk_dn))`",
+  "recommended_backtest_params": {
+    "window": [5, 10, 20],
+    "decay": [2, 3, 5, 10],
+    "truncation": [0.05, 0.08],
+    "neutralization": ["FAST", "MARKET", "INDUSTRY"],
+    "rationale": "分析师预测信号变化快，decay 使用较小值（2-5）；若需降低换手率可增大到 10；中性化建议 FAST 以匹配 Power Pool Theme"
+  }
+}

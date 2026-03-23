@@ -1,0 +1,155 @@
+[
+  {
+    "name": "vec_avg_rank",
+    "expression": "rank(vec_avg({field}))",
+    "description": "VECTOR字段：平均值后截面排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_sum_rank",
+    "expression": "rank(vec_sum({field}))",
+    "description": "VECTOR字段：求和后截面排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "vec_sum"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_count_rank",
+    "expression": "rank(vec_count({field}))",
+    "description": "VECTOR字段：计数后截面排名（衡量事件频率）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "vec_count"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_avg_ts_delta",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "VECTOR字段：平均值时序变化（事件强度变化）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_sum_ts_delta",
+    "expression": "rank(ts_delta(vec_sum({field}), {window}))",
+    "description": "VECTOR字段：求和时序变化（事件总量变化）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_delta", "vec_sum"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_count_ts_delta",
+    "expression": "rank(ts_delta(vec_count({field}), {window}))",
+    "description": "VECTOR字段：计数时序变化（事件频率变化）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_delta", "vec_count"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_avg_ts_mean",
+    "expression": "rank(ts_mean(vec_avg({field}), {window}))",
+    "description": "VECTOR字段：平均值时序均值（事件强度趋势）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_avg_ts_std_dev",
+    "expression": "rank(ts_std_dev(vec_avg({field}), {window}))",
+    "description": "VECTOR字段：平均值时序波动（事件稳定性）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_std_dev", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_range_rank",
+    "expression": "rank(vec_range({field}))",
+    "description": "VECTOR字段：值范围排名（事件分散度）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "vec_range"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_stddev_rank",
+    "expression": "rank(vec_stddev({field}))",
+    "description": "VECTOR字段：标准差排名（事件波动度）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "vec_stddev"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_avg_ts_rank",
+    "expression": "rank(ts_rank(vec_avg({field}), {window}))",
+    "description": "VECTOR字段：平均值时序排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_rank", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_avg_ts_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "VECTOR字段：平均值时序Z-score（异常事件检测）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_count_zscore",
+    "expression": "rank(zscore(vec_count({field})))",
+    "description": "VECTOR字段：计数截面Z-score（事件频率异常）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "zscore", "vec_count"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_avg_mean_deviation",
+    "expression": "rank(vec_avg({field}) - ts_mean(vec_avg({field}), {window}))",
+    "description": "VECTOR字段：当前值偏离历史均值",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_pair_diff",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "VECTOR双字段：平均值差异",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "vec_pair_ratio",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field2}) + 0.001))",
+    "description": "VECTOR双字段：平均值比率",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "vec_avg_decay_linear",
+    "expression": "rank(ts_decay_linear(vec_avg({field}), {window}))",
+    "description": "VECTOR字段：衰减加权平均值（近期事件权重更高）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "operators": ["rank", "ts_decay_linear", "vec_avg"],
+    "category": "time_series"
+  }
+]

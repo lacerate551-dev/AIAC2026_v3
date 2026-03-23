@@ -1,0 +1,568 @@
+[
+  {
+    "name": "rank",
+    "description": "截面排序，将输入信号做横截面排名",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号序列" }
+    ],
+    "output": "vector",
+    "category": "Cross Sectional",
+    "scope": ["REGULAR"],
+    "example": "rank(close)"
+  },
+  {
+    "name": "zscore",
+    "description": "截面标准化（z-score）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号序列" }
+    ],
+    "output": "vector",
+    "category": "Cross Sectional",
+    "scope": ["REGULAR"],
+    "example": "zscore(close)"
+  },
+  {
+    "name": "scale",
+    "description": "截面缩放，将输入信号缩放到可比范围",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号序列" }
+    ],
+    "output": "vector",
+    "category": "Cross Sectional",
+    "scope": ["REGULAR"],
+    "example": "scale(close)"
+  },
+  {
+    "name": "normalize",
+    "description": "截面归一化",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号序列" }
+    ],
+    "output": "vector",
+    "category": "Cross Sectional",
+    "scope": ["REGULAR"],
+    "example": "normalize(close)"
+  },
+  {
+    "name": "ts_mean",
+    "description": "时间序列均值（滑窗均值）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_mean(close, 20)"
+  },
+  {
+    "name": "ts_delta",
+    "description": "时间序列差分（与滞后期的差）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "滞后阶数" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_delta(close, 5)"
+  },
+  {
+    "name": "ts_delay",
+    "description": "时间序列延迟（取滞后值）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "滞后阶数" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_delay(close, 1)"
+  },
+  {
+    "name": "ts_std_dev",
+    "description": "时间序列标准差（滑窗波动）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_std_dev(close, 20)"
+  },
+  {
+    "name": "ts_rank",
+    "description": "时间序列排名（滑窗内排名/分位）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_rank(close, 20)"
+  },
+  {
+    "name": "ts_sum",
+    "description": "时间序列求和（滑窗求和）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_sum(volume, 5)"
+  },
+  {
+    "name": "ts_corr",
+    "description": "时间序列相关系数",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "序列1" },
+      { "position": 2, "type": ["vector"], "description": "序列2" },
+      { "position": 3, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_corr(close, volume, 20)"
+  },
+  {
+    "name": "ts_covariance",
+    "description": "时间序列协方差",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "序列1" },
+      { "position": 2, "type": ["vector"], "description": "序列2" },
+      { "position": 3, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_covariance(close, volume, 20)"
+  },
+  {
+    "name": "ts_arg_max",
+    "description": "滑窗最大值的位置（argmax）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_arg_max(close, 20)"
+  },
+  {
+    "name": "ts_arg_min",
+    "description": "滑窗最小值的位置（argmin）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_arg_min(close, 20)"
+  },
+  {
+    "name": "ts_decay_linear",
+    "description": "线性衰减加权，近期数据权重更高",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_decay_linear(close, 10)"
+  },
+  {
+    "name": "ts_zscore",
+    "description": "时间序列 z-score 标准化",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_zscore(close, 20)"
+  },
+  {
+    "name": "ts_product",
+    "description": "时间序列乘积（滑窗乘积）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_product(1 + returns, 5)"
+  },
+  {
+    "name": "ts_max",
+    "description": "时间序列最大值（滑窗最大值）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_max(high, 20)"
+  },
+  {
+    "name": "ts_min",
+    "description": "时间序列最小值（滑窗最小值）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_min(low, 20)"
+  },
+  {
+    "name": "ts_median",
+    "description": "时间序列中位数（滑窗中位数）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_median(close, 20)"
+  },
+  {
+    "name": "ts_scale",
+    "description": "时间序列缩放",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_scale(close, 20)"
+  },
+  {
+    "name": "days_from_last_change",
+    "description": "距离上次变化的天数",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "days_from_last_change(close)"
+  },
+  {
+    "name": "ts_count_nans",
+    "description": "滑窗内缺失值计数",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_count_nans(close, 20)"
+  },
+  {
+    "name": "group_neutralize",
+    "description": "分组中性化，将信号在组内进行中性化处理",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号" },
+      { "position": 2, "type": ["group"], "description": "分组字段（如 industry, sector）" }
+    ],
+    "output": "vector",
+    "category": "Group",
+    "scope": ["REGULAR"],
+    "example": "group_neutralize(rank(close), industry)"
+  },
+  {
+    "name": "group_rank",
+    "description": "分组内排名",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号" },
+      { "position": 2, "type": ["group"], "description": "分组字段" }
+    ],
+    "output": "vector",
+    "category": "Group",
+    "scope": ["REGULAR"],
+    "example": "group_rank(close, industry)"
+  },
+  {
+    "name": "group_mean",
+    "description": "分组均值",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号" },
+      { "position": 2, "type": ["scalar"], "description": "权重（可选）" },
+      { "position": 3, "type": ["group"], "description": "分组字段" }
+    ],
+    "output": "vector",
+    "category": "Group",
+    "scope": ["REGULAR"],
+    "example": "group_mean(close, 1, industry)"
+  },
+  {
+    "name": "group_zscore",
+    "description": "分组 z-score",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号" },
+      { "position": 2, "type": ["group"], "description": "分组字段" }
+    ],
+    "output": "vector",
+    "category": "Group",
+    "scope": ["REGULAR"],
+    "example": "group_zscore(close, industry)"
+  },
+  {
+    "name": "group_scale",
+    "description": "分组缩放",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值信号" },
+      { "position": 2, "type": ["group"], "description": "分组字段" }
+    ],
+    "output": "vector",
+    "category": "Group",
+    "scope": ["REGULAR"],
+    "example": "group_scale(close, industry)"
+  },
+  {
+    "name": "abs",
+    "description": "绝对值",
+    "inputs": [
+      { "position": 1, "type": ["vector", "scalar"], "description": "数值" }
+    ],
+    "output": "vector",
+    "category": "Arithmetic",
+    "scope": ["REGULAR"],
+    "example": "abs(returns)"
+  },
+  {
+    "name": "log",
+    "description": "自然对数",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值序列" }
+    ],
+    "output": "vector",
+    "category": "Arithmetic",
+    "scope": ["REGULAR"],
+    "example": "log(close)"
+  },
+  {
+    "name": "sign",
+    "description": "符号函数，返回 +1/-1/0",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值序列" }
+    ],
+    "output": "vector",
+    "category": "Arithmetic",
+    "scope": ["REGULAR"],
+    "example": "sign(returns)"
+  },
+  {
+    "name": "power",
+    "description": "幂运算",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "底数" },
+      { "position": 2, "type": ["scalar"], "description": "指数" }
+    ],
+    "output": "vector",
+    "category": "Arithmetic",
+    "scope": ["REGULAR"],
+    "example": "power(close, 2)"
+  },
+  {
+    "name": "sqrt",
+    "description": "平方根",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值序列" }
+    ],
+    "output": "vector",
+    "category": "Arithmetic",
+    "scope": ["REGULAR"],
+    "example": "sqrt(volume)"
+  },
+  {
+    "name": "inverse",
+    "description": "倒数（1/x）",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值序列" }
+    ],
+    "output": "vector",
+    "category": "Arithmetic",
+    "scope": ["REGULAR"],
+    "example": "inverse(close)"
+  },
+  {
+    "name": "winsorize",
+    "description": "缩尾处理，将极端值限制在指定标准差范围内",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值序列" },
+      { "position": 2, "type": ["scalar"], "description": "标准差倍数（默认4）" }
+    ],
+    "output": "vector",
+    "category": "Transformational",
+    "scope": ["REGULAR"],
+    "example": "winsorize(close, 3)"
+  },
+  {
+    "name": "truncate",
+    "description": "截断处理",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值序列" },
+      { "position": 2, "type": ["scalar"], "description": "最大百分比（默认0.01）" }
+    ],
+    "output": "vector",
+    "category": "Transformational",
+    "scope": ["REGULAR"],
+    "example": "truncate(close, 0.05)"
+  },
+  {
+    "name": "quantile",
+    "description": "分位数变换",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值序列" }
+    ],
+    "output": "vector",
+    "category": "Cross Sectional",
+    "scope": ["REGULAR"],
+    "example": "quantile(close)"
+  },
+  {
+    "name": "vec_avg",
+    "description": "向量平均（用于 EVENT 类型字段）",
+    "inputs": [
+      { "position": 1, "type": ["event"], "description": "事件向量" }
+    ],
+    "output": "vector",
+    "category": "Vector",
+    "scope": ["REGULAR"],
+    "example": "vec_avg(event_field)"
+  },
+  {
+    "name": "vec_sum",
+    "description": "向量求和（用于 EVENT 类型字段）",
+    "inputs": [
+      { "position": 1, "type": ["event"], "description": "事件向量" }
+    ],
+    "output": "vector",
+    "category": "Vector",
+    "scope": ["REGULAR"],
+    "example": "vec_sum(event_field)"
+  },
+  {
+    "name": "vec_count",
+    "description": "向量计数（用于 EVENT 类型字段）",
+    "inputs": [
+      { "position": 1, "type": ["event"], "description": "事件向量" }
+    ],
+    "output": "vector",
+    "category": "Vector",
+    "scope": ["REGULAR"],
+    "example": "vec_count(event_field)"
+  },
+  {
+    "name": "vec_max",
+    "description": "向量最大值（用于 EVENT 类型字段）",
+    "inputs": [
+      { "position": 1, "type": ["event"], "description": "事件向量" }
+    ],
+    "output": "vector",
+    "category": "Vector",
+    "scope": ["REGULAR"],
+    "example": "vec_max(event_field)"
+  },
+  {
+    "name": "vec_min",
+    "description": "向量最小值（用于 EVENT 类型字段）",
+    "inputs": [
+      { "position": 1, "type": ["event"], "description": "事件向量" }
+    ],
+    "output": "vector",
+    "category": "Vector",
+    "scope": ["REGULAR"],
+    "example": "vec_min(event_field)"
+  },
+  {
+    "name": "ts_regression",
+    "description": "时间序列回归",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "因变量 y" },
+      { "position": 2, "type": ["vector"], "description": "自变量 x" },
+      { "position": 3, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_regression(close, market, 60)"
+  },
+  {
+    "name": "regression_neut",
+    "description": "回归中性化",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "因变量 y" },
+      { "position": 2, "type": ["vector"], "description": "自变量 x" }
+    ],
+    "output": "vector",
+    "category": "Cross Sectional",
+    "scope": ["REGULAR"],
+    "example": "regression_neut(close, market)"
+  },
+  {
+    "name": "ts_skewness",
+    "description": "时间序列偏度",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_skewness(returns, 20)"
+  },
+  {
+    "name": "ts_kurtosis",
+    "description": "时间序列峰度",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "数值时间序列" },
+      { "position": 2, "type": ["int"], "description": "窗口长度" }
+    ],
+    "output": "vector",
+    "category": "Time Series",
+    "scope": ["REGULAR"],
+    "example": "ts_kurtosis(returns, 20)"
+  },
+  {
+    "name": "trade_when",
+    "description": "条件交易，只在满足条件时交易",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "Alpha 信号" },
+      { "position": 2, "type": ["vector"], "description": "条件1" },
+      { "position": 3, "type": ["vector"], "description": "条件2（可选）" }
+    ],
+    "output": "vector",
+    "category": "Transformational",
+    "scope": ["REGULAR"],
+    "example": "trade_when(alpha, volume > adv20)"
+  },
+  {
+    "name": "if_else",
+    "description": "条件选择",
+    "inputs": [
+      { "position": 1, "type": ["vector"], "description": "条件" },
+      { "position": 2, "type": ["vector"], "description": "条件为真时的值" },
+      { "position": 3, "type": ["vector"], "description": "条件为假时的值" }
+    ],
+    "output": "vector",
+    "category": "Logical",
+    "scope": ["REGULAR"],
+    "example": "if_else(close > open, 1, -1)"
+  }
+]

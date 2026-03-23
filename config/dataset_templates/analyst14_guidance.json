@@ -1,0 +1,80 @@
+{
+  "dataset_id": "analyst14",
+  "dataset_name": "Analyst Forecast Statistics",
+  "description": "分析师预测统计数据，包含预测值的统计分布（high/low/mean/median/stddev/numofests）",
+  "research_directions": [
+    {
+      "name": "预测分歧度信号",
+      "description": "分析师预测的分歧程度。high 与 low 差异大说明分析师意见分歧，可能预示高波动或信息不对称。",
+      "field_patterns": ["anl14_high_*", "anl14_low_*", "anl14_mean_*", "anl14_stddev_*"],
+      "example_combinations": [
+        {"combo": "anl14_high_eps_fp1 - anl14_low_eps_fp1", "logic": "EPS预测分歧"},
+        {"combo": "anl14_stddev_eps_fp1 / anl14_mean_eps_fp1", "logic": "EPS预测变异系数"}
+      ],
+      "suggested_operators": ["rank", "ts_delta", "ts_corr"],
+      "alpha_logic": "分歧度 = (high - low) / mean 或 stddev / mean，高分歧可能预示高波动"
+    },
+    {
+      "name": "预测动量与反转",
+      "description": "分析师预测的变化趋势。mean 值的时间序列变化反映预测修正方向。",
+      "field_patterns": ["anl14_mean_*"],
+      "example_fields": ["anl14_mean_eps_fp1", "anl14_mean_bvps_fp1", "anl14_mean_capex_fp1"],
+      "suggested_operators": ["ts_delta", "ts_rank", "ts_zscore", "rank"],
+      "alpha_logic": "ts_delta(mean_field, window) 捕捉预测修正动量，负号取反为反转"
+    },
+    {
+      "name": "分析师关注度",
+      "description": "覆盖公司的分析师数量。关注度变化可能预示信息流入。",
+      "field_patterns": ["anl14_numofests_*"],
+      "example_fields": ["anl14_numofests_eps_fp1", "anl14_numofests_bvps_fp1"],
+      "suggested_operators": ["ts_delta", "rank", "ts_mean"],
+      "alpha_logic": "ts_delta(numofests, window) 捕捉关注度变化，正值为关注度上升"
+    },
+    {
+      "name": "均值-中位数偏离",
+      "description": "预测均值与中位数的差异，反映预测分布的偏态。正偏态说明存在极端乐观预测。",
+      "field_patterns": ["anl14_mean_*", "anl14_median_*"],
+      "example_combinations": [
+        {"combo": "anl14_mean_eps_fp1 - anl14_median_eps_fp1", "logic": "EPS预测偏态"}
+      ],
+      "suggested_operators": ["rank", "abs"],
+      "alpha_logic": "mean - median > 0 表示正偏态（存在极端乐观预测）"
+    },
+    {
+      "name": "跨期预测差异",
+      "description": "短期预测（fp1-fp5）与长期预测（fy1-fy5）的差异。差异大可能说明不确定性高。",
+      "field_patterns": ["anl14_mean_*_fp1", "anl14_mean_*_fy1"],
+      "example_combinations": [
+        {"combo": "anl14_mean_eps_fp1 - anl14_mean_eps_fy1", "logic": "短期 vs 长期 EPS 预测差异"}
+      ],
+      "suggested_operators": ["rank", "ts_delta"],
+      "alpha_logic": "季度预测与年度预测的差异反映短期预期偏离"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "anl14_mean_eps_fp1", "coverage": 0.85, "reason": "EPS均值预测（下一季度），高覆盖率"},
+    {"field_id": "anl14_high_eps_fp1", "coverage": 0.85, "reason": "EPS预测上限，用于分歧度研究"},
+    {"field_id": "anl14_low_eps_fp1", "coverage": 0.85, "reason": "EPS预测下限，与 high 配对"},
+    {"field_id": "anl14_stddev_eps_fp1", "coverage": 0.85, "reason": "EPS预测标准差，直接衡量分歧"},
+    {"field_id": "anl14_numofests_eps_fp1", "coverage": 0.85, "reason": "EPS预测的分析师数量"},
+    {"field_id": "anl14_mean_bvps_fp1", "coverage": 0.80, "reason": "每股账面价值预测"},
+    {"field_id": "anl14_mean_capex_fp1", "coverage": 0.75, "reason": "资本支出预测"},
+    {"field_id": "anl14_mean_cfps_fp1", "coverage": 0.78, "reason": "每股现金流预测"},
+    {"field_id": "anl14_mean_div_fp1", "coverage": 0.70, "reason": "股息预测"},
+    {"field_id": "anl14_mean_ebit_fp1", "coverage": 0.82, "reason": "EBIT预测"},
+    {"field_id": "anl14_mean_ebitda_fp1", "coverage": 0.80, "reason": "EBITDA预测"},
+    {"field_id": "anl14_high_rev_fp1", "coverage": 0.85, "reason": "营收预测上限"},
+    {"field_id": "anl14_low_rev_fp1", "coverage": 0.85, "reason": "营收预测下限"},
+    {"field_id": "anl14_mean_rev_fp1", "coverage": 0.85, "reason": "营收均值预测"},
+    {"field_id": "anl14_mean_eps_fy1", "coverage": 0.85, "reason": "EPS年度预测，与 fp1 配对研究跨期差异"}
+  ],
+  "field_pairs": [
+    {"field1": "anl14_high_eps_fp1", "field2": "anl14_low_eps_fp1", "logic": "EPS预测分歧"},
+    {"field1": "anl14_high_rev_fp1", "field2": "anl14_low_rev_fp1", "logic": "营收预测分歧"},
+    {"field1": "anl14_mean_eps_fp1", "field2": "anl14_median_eps_fp1", "logic": "EPS预测偏态"},
+    {"field1": "anl14_mean_eps_fp1", "field2": "anl14_mean_eps_fy1", "logic": "季度-年度EPS预测差异"},
+    {"field1": "anl14_stddev_eps_fp1", "field2": "anl14_mean_eps_fp1", "logic": "EPS预测变异系数"},
+    {"field1": "anl14_high_bvps_fp1", "field2": "anl14_low_bvps_fp1", "logic": "BVPS预测分歧"}
+  ],
+  "guidance_prompt": "**Analyst14 数据集研究方向指引（重要）：**\n此数据集为分析师预测统计数据（Analyst Forecast Statistics），包含预测值的统计分布。请按以下研究方向推荐字段组合：\n\n**研究方向 1：预测分歧度信号**\n- 配对选择 `anl14_high_*` 与 `anl14_low_*` 字段\n- 或使用 `anl14_stddev_*` 直接衡量分歧\n- Alpha 逻辑：(high - low) / mean 或 stddev / mean\n- 推荐操作：生成分歧度类 Alpha\n\n**研究方向 2：预测动量与反转**\n- 选择 `anl14_mean_*` 字段\n- Alpha 逻辑：ts_delta(mean_field, window) 捕捉预测修正方向\n- 推荐操作：生成时间序列动量/反转类 Alpha\n\n**研究方向 3：分析师关注度**\n- 选择 `anl14_numofests_*` 字段\n- Alpha 逻辑：关注度变化可能预示信息流入\n- 推荐操作：ts_delta(numofests, window)\n\n**研究方向 4：均值-中位数偏离**\n- 配对选择 `anl14_mean_*` 与 `anl14_median_*` 字段\n- Alpha 逻辑：mean - median 反映预测分布偏态\n\n**研究方向 5：跨期预测差异**\n- 配对季度字段 (fp1-fp5) 与年度字段 (fy1-fy5)\n- Alpha 逻辑：短期与长期预测差异反映不确定性\n\n**字段选择优先级：**\n1. 优先推荐 priority_fields 列表中的高价值字段\n2. 对于分歧度研究，确保推荐 high/low/stddev 配对\n3. 对于跨期研究，确保推荐 fp1 与 fy1 配对\n4. 覆盖率 > 60% 的字段优先"
+}

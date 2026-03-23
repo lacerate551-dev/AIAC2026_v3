@@ -1,0 +1,91 @@
+{
+  "dataset_id": "earnings7",
+  "dataset_name": "Earnings Events",
+  "description": "财报事件数据集，包含 EPS 金额、股息金额、财报发布时间、财年季度等财报相关信息",
+  "field_type": "event",
+  "field_type_note": "所有字段均为 VECTOR 类型（event 类型），必须使用 vec_avg 转换后才能进行数学运算",
+  "research_directions": [
+    {
+      "name": "EPS 信号",
+      "description": "EPS 金额数据。ern7_co_spe 和 ern7_dsu_spe 覆盖率高达 90%+，可直接作为 EPS 信号使用。",
+      "field_patterns": ["ern7_spe", "ern7_co_spe", "ern7_dsu_spe"],
+      "example_combinations": [
+        {"combo": "vec_avg(ern7_co_spe)", "logic": "EPS 金额"},
+        {"combo": "vec_avg(ern7_dsu_spe)", "logic": "EPS 金额（另一来源）"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta", "ts_mean"],
+      "alpha_logic": "EPS 高的公司基本面好，EPS 变化反映盈利变化趋势。"
+    },
+    {
+      "name": "股息信号",
+      "description": "股息金额数据。ern7_div_amount 系列字段覆盖率约 50%，可用于股息策略。",
+      "field_patterns": ["ern7_div_amount", "ern7_div_amount_usd", "ern7_div_amount_oc", "dividend_amount_original_currency"],
+      "example_combinations": [
+        {"combo": "vec_avg(ern7_div_amount_usd)", "logic": "股息金额 USD"},
+        {"combo": "ts_delta(vec_avg(ern7_div_amount_usd), 20)", "logic": "股息变化"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta"],
+      "alpha_logic": "股息高且稳定的公司通常现金流好，股息增加是正面信号。"
+    },
+    {
+      "name": "EPS 变化动量",
+      "description": "EPS 的变化趋势。通过 ts_delta 捕捉 EPS 变化方向。",
+      "field_patterns": ["ern7_co_spe", "ern7_dsu_spe"],
+      "example_combinations": [
+        {"combo": "ts_delta(vec_avg(ern7_co_spe), 20)", "logic": "EPS 20日变化"},
+        {"combo": "ts_delta(vec_avg(ern7_dsu_spe), 20)", "logic": "EPS 20日变化（另一来源）"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "ts_delta", "ts_mean"],
+      "alpha_logic": "EPS 上升预示盈利改善，EPS 下降预示盈利恶化。"
+    },
+    {
+      "name": "财报时间信号",
+      "description": "财报发布时间和财年季度信息。earnings_announcement_time_of_day 覆盖率 100%。",
+      "field_patterns": ["earnings_announcement_time_of_day", "earnings_date_fiscal_quarter", "earnings_date_fiscal_year", "next_earnings_quarter"],
+      "example_combinations": [
+        {"combo": "vec_avg(earnings_announcement_time_of_day)", "logic": "财报发布时间"},
+        {"combo": "vec_avg(next_earnings_quarter)", "logic": "下季度财报季度"}
+      ],
+      "suggested_operators": ["rank", "vec_avg"],
+      "alpha_logic": "财报发布时间可能影响市场反应，盘后/盘前发布可能有不同效果。"
+    },
+    {
+      "name": "多源 EPS 共识",
+      "description": "多个 EPS 来源的差异和一致性。ern7_co_spe 和 ern7_dsu_spe 可对比使用。",
+      "field_patterns": ["ern7_co_spe", "ern7_dsu_spe", "ern7_spe"],
+      "example_combinations": [
+        {"combo": "vec_avg(ern7_co_spe) - vec_avg(ern7_dsu_spe)", "logic": "两源 EPS 差异"},
+        {"combo": "(vec_avg(ern7_co_spe) + vec_avg(ern7_dsu_spe)) / 2", "logic": "多源 EPS 均值"}
+      ],
+      "suggested_operators": ["rank", "vec_avg", "abs"],
+      "alpha_logic": "多源一致说明信号可靠，差异大可能有信息不对称。"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "ern7_co_spe", "coverage": 0.90, "type": "VECTOR", "reason": "EPS 金额，高覆盖率，核心字段"},
+    {"field_id": "ern7_dsu_spe", "coverage": 0.91, "type": "VECTOR", "reason": "EPS 金额（另一来源），高覆盖率"},
+    {"field_id": "ern7_spe", "coverage": 0.30, "type": "VECTOR", "reason": "EPS 金额，覆盖率较低但可参考"},
+    {"field_id": "ern7_div_amount_usd", "coverage": 0.50, "type": "VECTOR", "reason": "股息金额 USD"},
+    {"field_id": "ern7_div_amount", "coverage": 0.50, "type": "VECTOR", "reason": "股息金额"},
+    {"field_id": "dividend_amount_original_currency", "coverage": 0.50, "type": "VECTOR", "reason": "原始货币股息"},
+    {"field_id": "earnings_announcement_time_of_day", "coverage": 1.00, "type": "VECTOR", "reason": "财报发布时间，100% 覆盖"},
+    {"field_id": "earnings_date_fiscal_quarter", "coverage": 1.00, "type": "VECTOR", "reason": "财年季度，100% 覆盖"},
+    {"field_id": "earnings_date_fiscal_year", "coverage": 1.00, "type": "VECTOR", "reason": "财年，100% 覆盖"},
+    {"field_id": "next_earnings_quarter", "coverage": 1.00, "type": "VECTOR", "reason": "下季度财报季度，100% 覆盖"},
+    {"field_id": "estimated_earnings_fiscal_year", "coverage": 0.87, "type": "VECTOR", "reason": "预测财年"},
+    {"field_id": "eps_fiscal_quarter", "coverage": 0.95, "type": "VECTOR", "reason": "EPS 财年季度"},
+    {"field_id": "eps_fiscal_year", "coverage": 0.95, "type": "VECTOR", "reason": "EPS 财年"}
+  ],
+  "field_pairs": [
+    {"field1": "ern7_co_spe", "field2": "ern7_dsu_spe", "logic": "两源 EPS 对比"},
+    {"field1": "ern7_div_amount_usd", "field2": "ern7_div_amount", "logic": "USD 与原始股息对比"}
+  ],
+  "guidance_prompt": "**Earnings7 数据集研究方向指引（重要）：**\n此数据集为财报事件数据，全部字段为 VECTOR 类型，**必须使用 vec_avg 转换后才能进行数学运算！**\n\n**重要规则：**\n- 所有字段必须用 vec_avg(field) 转换后才能使用数学运算\n- 错误示例：`{field1} - {field2}`\n- 正确示例：`vec_avg({field1}) - vec_avg({field2})`\n\n**研究方向 1：EPS 信号（核心）**\n- 字段：`ern7_co_spe`（覆盖率 90%）、`ern7_dsu_spe`（覆盖率 91%）\n- 正确表达式：`rank(vec_avg(ern7_co_spe))`\n\n**研究方向 2：股息信号**\n- 字段：`ern7_div_amount_usd`、`ern7_div_amount`\n- 正确表达式：`rank(vec_avg(ern7_div_amount_usd))`\n\n**研究方向 3：EPS 变化动量**\n- 正确表达式：`rank(ts_delta(vec_avg(ern7_co_spe), 20))`\n\n**研究方向 4：财报时间信号**\n- 字段：`earnings_announcement_time_of_day`（覆盖率 100%）\n- 正确表达式：`rank(vec_avg(earnings_announcement_time_of_day))`\n\n**研究方向 5：多源 EPS 共识**\n- 正确表达式：`rank(vec_avg(ern7_co_spe) - vec_avg(ern7_dsu_spe))`\n\n**字段选择优先级：**\n1. 优先推荐 ern7_co_spe / ern7_dsu_spe（覆盖率 90%+）\n2. 其次推荐财报时间类字段（覆盖率 100%）\n3. 股息类字段覆盖率约 50%，可结合使用",
+  "recommended_backtest_params": {
+    "window": [10, 20, 30],
+    "decay": [5, 10, 15],
+    "truncation": [0.05, 0.08],
+    "neutralization": ["FAST", "MARKET", "INDUSTRY"],
+    "rationale": "财报数据更新频率较低，使用较大窗口和 decay；中性化建议 FAST 以匹配 Power Pool Theme"
+  }
+}

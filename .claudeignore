@@ -1,0 +1,29 @@
+# ==================== 缓存数据 ====================
+cache/
+*.cache
+
+# ==================== 研究归档 ====================
+research/
+
+# ==================== AI 生成的大型 JSON ====================
+ai/generated_strategies/
+
+# ==================== Python 编译缓存 ====================
+__pycache__/
+*.pyc
+*.pyo
+
+# ==================== 日志 ====================
+*.log
+
+# ==================== 临时/过程文档 ====================
+BUILD_STRATEGY_FIX.md
+STAGE45_SUMMARY.md
+STAGE45_CHECKLIST.md
+FIELD_FILTER_OPTIMIZATION.md
+test_stage45.py
+test_build_strategy_fix.py
+
+# ==================== 凭证（安全） ====================
+config/credentials.json
+config/api_keys.json

@@ -1,0 +1,695 @@
+[
+  {
+    "name": "ts_mean_rank",
+    "expression": "rank(ts_mean({field}, {window}))",
+    "description": "时间序列均值排名，捕捉中期趋势",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_delta_rank",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "时间序列差分排名，捕捉短期动量",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_delta_reversal",
+    "expression": "rank(-ts_delta({field}, {window}))",
+    "description": "时间序列差分反向排名，捕捉短期反转",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_std_dev_rank",
+    "expression": "rank(ts_std_dev({field}, {window}))",
+    "description": "时间序列波动率排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_rank_field",
+    "expression": "rank(ts_rank({field}, {window}))",
+    "description": "时间序列排名的截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_sum_rank",
+    "expression": "rank(ts_sum({field}, {window}))",
+    "description": "时间序列求和排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_sum"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_arg_max_rank",
+    "expression": "rank(ts_arg_max({field}, {window}))",
+    "description": "滑窗最大值位置排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_arg_max"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_arg_min_rank",
+    "expression": "rank(ts_arg_min({field}, {window}))",
+    "description": "滑窗最小值位置排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_arg_min"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_delay_rank",
+    "expression": "rank(ts_delay({field}, {window}))",
+    "description": "滞后值排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delay"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_decay_linear_rank",
+    "expression": "rank(ts_decay_linear({field}, {window}))",
+    "description": "线性衰减加权排名，近期数据权重更高",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_decay_linear"],
+    "category": "time_series"
+  },
+  {
+    "name": "ts_zscore_rank",
+    "expression": "rank(ts_zscore({field}, {window}))",
+    "description": "时间序列 z-score 排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_zscore"],
+    "category": "time_series"
+  },
+  {
+    "name": "simple_rank",
+    "expression": "rank({field})",
+    "description": "简单截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "zscore_rank",
+    "expression": "rank(zscore({field}))",
+    "description": "Z分数截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "zscore"],
+    "category": "cross_section"
+  },
+  {
+    "name": "scale_rank",
+    "expression": "rank(scale({field}))",
+    "description": "缩放后排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "scale"],
+    "category": "cross_section"
+  },
+  {
+    "name": "normalize_rank",
+    "expression": "rank(normalize({field}))",
+    "description": "归一化后排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "normalize"],
+    "category": "cross_section"
+  },
+  {
+    "name": "abs_rank",
+    "expression": "rank(abs({field}))",
+    "description": "绝对值排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "abs"],
+    "category": "cross_section"
+  },
+  {
+    "name": "log_rank",
+    "expression": "rank(log({field}))",
+    "description": "对数排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "log"],
+    "category": "cross_section"
+  },
+  {
+    "name": "sign_rank",
+    "expression": "rank(sign({field}))",
+    "description": "符号排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "sign"],
+    "category": "cross_section"
+  },
+  {
+    "name": "mean_deviation",
+    "expression": "rank({field} - ts_mean({field}, {window}))",
+    "description": "均值偏离，当前值与历史均值的偏差",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "time_series"
+  },
+  {
+    "name": "mean_ratio",
+    "expression": "rank({field} / ts_mean({field}, {window}))",
+    "description": "均值比率，当前值相对历史均值的比例",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "time_series"
+  },
+  {
+    "name": "sharpe_like",
+    "expression": "rank(ts_mean({field}, {window}) / (ts_std_dev({field}, {window}) + 0.001))",
+    "description": "类夏普比率，均值/波动率",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean", "ts_std_dev"],
+    "category": "complex"
+  },
+  {
+    "name": "volatility_ratio",
+    "expression": "rank(ts_std_dev({field}, {window}) / ts_mean({field}, {window}))",
+    "description": "变异系数排名，波动率/均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev", "ts_mean"],
+    "category": "complex"
+  },
+  {
+    "name": "delta_volatility_adjusted",
+    "expression": "rank(ts_delta({field}, {window}) / (ts_std_dev({field}, {window}) + 0.001))",
+    "description": "波动率调整后的动量",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "ts_std_dev"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_mean_delayed",
+    "expression": "rank(ts_mean(ts_delay({field}, 1), {window}))",
+    "description": "滞后均值的排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean", "ts_delay"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_delta_mean",
+    "expression": "rank(ts_delta(ts_mean({field}, {window}), 1))",
+    "description": "均值变化的排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "ts_mean"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_std_dev_delta",
+    "expression": "rank(ts_std_dev(ts_delta({field}, 1), {window}))",
+    "description": "差分波动率排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev", "ts_delta"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_rank_delta",
+    "expression": "rank(ts_delta(ts_rank({field}, {window}), 1))",
+    "description": "时序排名变化",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "ts_rank"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_mean_scale",
+    "expression": "rank(ts_mean(scale({field}), {window}))",
+    "description": "缩放后的时序均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean", "scale"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_rank_scale",
+    "expression": "rank(ts_rank(scale({field}), {window}))",
+    "description": "缩放后的时序排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank", "scale"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_mean_ranked",
+    "expression": "rank(ts_mean(rank({field}), {window}))",
+    "description": "排名的时序均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_std_dev_ranked",
+    "expression": "rank(ts_std_dev(rank({field}), {window}))",
+    "description": "排名的时序波动率",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_delta_ranked",
+    "expression": "rank(ts_delta(rank({field}), 1))",
+    "description": "排名的变化",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "complex"
+  },
+  {
+    "name": "decay_linear_mean",
+    "expression": "rank(ts_mean(ts_decay_linear({field}, {window}), {window}))",
+    "description": "衰减加权后的均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean", "ts_decay_linear"],
+    "category": "complex"
+  },
+  {
+    "name": "decay_linear_delta",
+    "expression": "rank(ts_delta(ts_decay_linear({field}, {window}), 1))",
+    "description": "衰减加权后的变化",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "ts_decay_linear"],
+    "category": "complex"
+  },
+  {
+    "name": "decay_linear_rank_ts",
+    "expression": "rank(ts_rank(ts_decay_linear({field}, {window}), {window}))",
+    "description": "衰减加权后的时序排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank", "ts_decay_linear"],
+    "category": "complex"
+  },
+  {
+    "name": "field_diff",
+    "expression": "rank({field1} - {field2})",
+    "description": "双字段差值排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "field_ratio",
+    "expression": "rank({field1} / {field2})",
+    "description": "双字段比值排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_corr_pair",
+    "expression": "rank(ts_corr({field1}, {field2}, {window}))",
+    "description": "双字段相关性排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_corr"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_covariance_pair",
+    "expression": "rank(ts_covariance({field1}, {field2}, {window}))",
+    "description": "双字段协方差排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_covariance"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_mean_diff",
+    "expression": "rank(ts_mean({field1}, {window}) - ts_mean({field2}, {window}))",
+    "description": "双字段均值差排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_delta_diff",
+    "expression": "rank(ts_delta({field1}, {window}) - ts_delta({field2}, {window}))",
+    "description": "双字段动量差排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_std_dev_diff",
+    "expression": "rank(ts_std_dev({field1}, {window}) - ts_std_dev({field2}, {window}))",
+    "description": "双字段波动率差排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_std_dev"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_rank_diff",
+    "expression": "rank(ts_rank({field1}, {window}) - ts_rank({field2}, {window}))",
+    "description": "双字段时序排名差排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_rank"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_mean_ratio",
+    "expression": "rank(ts_mean({field1}, {window}) / ts_mean({field2}, {window}))",
+    "description": "双字段均值比排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_std_dev_ratio",
+    "expression": "rank(ts_std_dev({field1}, {window}) / ts_std_dev({field2}, {window}))",
+    "description": "双字段波动率比排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_std_dev"],
+    "category": "pair"
+  },
+  {
+    "name": "scale_diff",
+    "expression": "rank(scale({field1}) - scale({field2}))",
+    "description": "双字段缩放后差值排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "scale"],
+    "category": "pair"
+  },
+  {
+    "name": "zscore_diff",
+    "expression": "rank(zscore({field1}) - zscore({field2}))",
+    "description": "双字段 Z 分数差排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "zscore"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_rank_ratio",
+    "expression": "rank(ts_rank({field1}, {window}) / ts_rank({field2}, {window}))",
+    "description": "双字段时序排名比排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_rank"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_delta_ratio",
+    "expression": "rank(ts_delta({field1}, 1) / ts_delta({field2}, 1))",
+    "description": "双字段变化比排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_delay_diff",
+    "expression": "rank(ts_delay({field1}, {window}) - ts_delay({field2}, {window}))",
+    "description": "双字段滞后差排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_delay"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_mean_product",
+    "expression": "rank(ts_mean({field1}, {window}) * ts_mean({field2}, {window}))",
+    "description": "双字段均值乘积排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_delta_product",
+    "expression": "rank(ts_delta({field1}, {window}) * ts_delta({field2}, {window}))",
+    "description": "双字段动量乘积排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_rank_product",
+    "expression": "rank(ts_rank({field1}, {window}) * ts_rank({field2}, {window}))",
+    "description": "双字段时序排名乘积排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_rank"],
+    "category": "pair"
+  },
+  {
+    "name": "corr_delta",
+    "expression": "rank(ts_corr(ts_delta({field1}, 1), ts_delta({field2}, 1), {window}))",
+    "description": "双字段变化的相关性排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_corr", "ts_delta"],
+    "category": "pair"
+  },
+  {
+    "name": "corr_mean",
+    "expression": "rank(ts_corr(ts_mean({field1}, {window}), ts_mean({field2}, {window}), {window}))",
+    "description": "双字段均值的相关性排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_corr", "ts_mean"],
+    "category": "pair"
+  },
+  {
+    "name": "mean_vs_stddev",
+    "expression": "rank(ts_mean({field1}, {window}) / ts_std_dev({field2}, {window}))",
+    "description": "字段1均值/字段2波动率",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_mean", "ts_std_dev"],
+    "category": "pair"
+  },
+  {
+    "name": "field_minus_mean_other",
+    "expression": "rank({field1} - ts_mean({field2}, {window}))",
+    "description": "字段1减去字段2均值",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "pair"
+  },
+  {
+    "name": "mean_minus_field",
+    "expression": "rank(ts_mean({field1}, {window}) - {field2})",
+    "description": "字段1均值减去字段2",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_rank_nested_mean",
+    "expression": "rank(ts_rank(ts_mean({field}, {window}), {window}))",
+    "description": "均值的时序排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank", "ts_mean"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_rank_nested_stddev",
+    "expression": "rank(ts_rank(ts_std_dev({field}, {window}), {window}))",
+    "description": "波动率的时序排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank", "ts_std_dev"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_mean_nested_rank",
+    "expression": "rank(ts_mean(ts_rank({field}, {window}), {window}))",
+    "description": "时序排名的均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean", "ts_rank"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_stddev_nested_rank",
+    "expression": "rank(ts_std_dev(ts_rank({field}, {window}), {window}))",
+    "description": "时序排名的波动率",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev", "ts_rank"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_delta_delta",
+    "expression": "rank(ts_delta(ts_delta({field}, 1), {window}))",
+    "description": "差分的差分（加速度）",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_mean_mean",
+    "expression": "rank(ts_mean(ts_mean({field}, {window}), {window}))",
+    "description": "均值的均值（平滑）",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_stddev_stddev",
+    "expression": "rank(ts_std_dev(ts_std_dev({field}, {window}), {window}))",
+    "description": "波动率的波动率",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev"],
+    "category": "complex"
+  },
+  {
+    "name": "mean_diff_window",
+    "expression": "rank(ts_mean({field}, {window}) - ts_mean({field}, {window2}))",
+    "description": "不同窗口均值差（趋势）",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_delta_mean_stddev",
+    "expression": "rank(ts_delta(ts_mean({field}, {window}), 1))",
+    "description": "均值变化排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "ts_mean"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_delta_stddev",
+    "expression": "rank(ts_delta(ts_std_dev({field}, {window}), 1))",
+    "description": "波动率变化排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "ts_std_dev"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_mean_zscore",
+    "expression": "rank(ts_mean(zscore({field}), {window}))",
+    "description": "Z分数的时序均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean", "zscore"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_rank_zscore",
+    "expression": "rank(ts_rank(zscore({field}), {window}))",
+    "description": "Z分数的时序排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank", "zscore"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_stddev_zscore",
+    "expression": "rank(ts_std_dev(zscore({field}), {window}))",
+    "description": "Z分数的时序波动率",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev", "zscore"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_mean_scale",
+    "expression": "rank(ts_mean(scale({field}), {window}))",
+    "description": "缩放后的时序均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean", "scale"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_stddev_scale",
+    "expression": "rank(ts_std_dev(scale({field}), {window}))",
+    "description": "缩放后的时序波动率",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev", "scale"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_delta_scale",
+    "expression": "rank(ts_delta(scale({field}), 1))",
+    "description": "缩放后的变化",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "scale"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_delta_mean_delayed",
+    "expression": "rank(ts_delta(ts_mean(ts_delay({field}, 1), {window}), 1))",
+    "description": "滞后均值的差分",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta", "ts_mean", "ts_delay"],
+    "category": "complex"
+  },
+  {
+    "name": "ts_rank_rank_diff",
+    "expression": "rank(ts_rank({field1}, {window1}) - ts_rank({field2}, {window2}))",
+    "description": "不同窗口/字段的时序排名差",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_rank"],
+    "category": "pair"
+  },
+  {
+    "name": "ts_decay_linear_zscore",
+    "expression": "rank(ts_zscore(ts_decay_linear({field}, {window}), {window}))",
+    "description": "衰减加权后的 Z-score",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_zscore", "ts_decay_linear"],
+    "category": "complex"
+  }
+]

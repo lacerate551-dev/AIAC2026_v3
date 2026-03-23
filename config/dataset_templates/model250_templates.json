@@ -1,0 +1,155 @@
+[
+  {
+    "name": "malta_score_momentum",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "MALTA 评分动量：评分变化方向预示股价走势",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl250_malta*_score"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "malta_score_zscore",
+    "expression": "rank(ts_zscore({field}, {window}))",
+    "description": "MALTA 评分历史 Z-score，识别异常评分",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl250_malta*_score"},
+    "operators": ["rank", "ts_zscore"],
+    "category": "time_series"
+  },
+  {
+    "name": "model_score_rank",
+    "expression": "rank({field})",
+    "description": "模型评分截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl250_*_score"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "model_score_decay",
+    "expression": "rank(ts_decay_linear({field}, {window}))",
+    "description": "衰减加权模型评分，近期评分权重更高",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_decay_linear"],
+    "category": "time_series"
+  },
+  {
+    "name": "short_medium_alignment",
+    "expression": "rank(sign({field1}) * sign({field2}) * (abs({field1}) + abs({field2})))",
+    "description": "短中期信号一致性：同向时信号增强",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "mdl250_eq_short", "field2": "mdl250_eq_medium"},
+    "operators": ["rank", "sign", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "model_signal_diff",
+    "expression": "rank({field1} - {field2})",
+    "description": "两模型信号差值，捕捉不同周期观点差异",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "model_signal_ratio",
+    "expression": "rank({field1} / ({field2} + 0.001))",
+    "description": "两模型信号比值",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "hc_enhancement",
+    "expression": "rank({field1} * (1 + {field2}))",
+    "description": "高置信度增强：用 HC 版本增强标准信号",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "mdl250_eq_*", "field2": "mdl250_hc_eq_*"},
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "hedge_protection",
+    "expression": "rank({field})",
+    "description": "Hedge 保护信号：识别下行保护能力强的股票",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl250*_eq_hedge"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "seasonality_pattern",
+    "expression": "rank(ts_mean({field}, {window}))",
+    "description": "季节性模型均值，捕捉历史同期模式",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl250*_eq_seasonality"},
+    "operators": ["rank", "ts_mean"],
+    "category": "time_series"
+  },
+  {
+    "name": "model_score_ts_rank",
+    "expression": "rank(ts_rank({field}, {window}))",
+    "description": "模型评分时序排名的截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank"],
+    "category": "time_series"
+  },
+  {
+    "name": "multi_model_average",
+    "expression": "rank(({field1} + {field2} + {field3}) / 3)",
+    "description": "多模型信号平均：综合短期、中期、季节性",
+    "fields_required": 3,
+    "field_types": [["vector"], ["vector"], ["vector"]],
+    "field_hints": {"field1": "mdl250_eq_short", "field2": "mdl250_eq_medium", "field3": "mdl250_eq_seasonality"},
+    "operators": ["rank"],
+    "category": "multi"
+  },
+  {
+    "name": "model_score_reversal",
+    "expression": "rank(-ts_delta({field}, {window}))",
+    "description": "模型评分反转：评分变化的反向信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "model_volatility",
+    "expression": "rank(ts_std_dev({field}, {window}))",
+    "description": "模型评分波动率：评分稳定性",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev"],
+    "category": "time_series"
+  },
+  {
+    "name": "malta_hc_comparison",
+    "expression": "rank({field1} - {field2})",
+    "description": "MALTA 标准版与 HC 版本对比",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "mdl250_malta_eq_score", "field2": "mdl250_maltahc_eq_score"},
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "model_correlation_signal",
+    "expression": "rank(ts_corr({field1}, {field2}, {window}))",
+    "description": "两模型相关性信号",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "operators": ["rank", "ts_corr"],
+    "category": "pair"
+  }
+]

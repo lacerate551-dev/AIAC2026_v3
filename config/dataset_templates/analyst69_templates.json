@@ -1,0 +1,321 @@
+[
+  {
+    "name": "eps_revision_momentum",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "EPS 修正动量：4 周上调减下调的净数量，正值预示分析师看好",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_revision_ratio",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field2}) + 1))",
+    "description": "EPS 上调/下调比率，比率>1 说明多数分析师看好",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_change_pct",
+    "expression": "rank(vec_avg({field}))",
+    "description": "EPS 变化百分比，直接使用已计算字段",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_eps_chg_pct"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_revision_momentum_smoothed",
+    "expression": "rank(ts_mean(vec_avg({field1}) - vec_avg({field2}), {window}))",
+    "description": "EPS 修正动量平滑版，降低换手率",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn"},
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "target_price_change",
+    "expression": "rank(vec_avg({field}))",
+    "description": "目标价 4 周变化，正值说明目标价上调",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_target_4wk_chg"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "target_price_dispersion",
+    "expression": "rank((vec_avg({field1}) - vec_avg({field2})) / (abs(vec_avg({field1})) + 0.001))",
+    "description": "目标价分歧度：(最高 - 最低) / 最高，分歧大可能预示高波动",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_target_hi", "field2": "anl69_best_target_lo"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "analyst_buy_sentiment",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "分析师买入情绪：买入推荐减卖出推荐，正值说明分析师看好",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_tot_buy_rec", "field2": "anl69_tot_sell_rec"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "analyst_buy_ratio",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field1}) + vec_avg({field2}) + vec_avg({field3}) + 1))",
+    "description": "买入推荐占比：买入/(买入+卖出+持有)",
+    "fields_required": 3,
+    "field_types": [["event"], ["event"], ["event"]],
+    "field_hints": {"field1": "anl69_tot_buy_rec", "field2": "anl69_tot_sell_rec", "field3": "anl69_tot_hold_rec"},
+    "operators": ["rank", "vec_avg"],
+    "category": "triple"
+  },
+  {
+    "name": "analyst_rating_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "分析师评级信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_analyst_rating"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "sales_revision_momentum",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "收入修正动量：4 周上调减下调的净数量",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_sales_4wk_up", "field2": "anl69_best_sales_4wk_dn"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "sales_change_pct",
+    "expression": "rank(vec_avg({field}))",
+    "description": "收入变化百分比，直接使用已计算字段",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_sales_chg_pct"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_dispersion",
+    "expression": "rank((vec_avg({field1}) - vec_avg({field2})) / (abs(vec_avg({field1})) + 0.001))",
+    "description": "EPS 预测分歧度：(最高 - 最低) / 最高",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_eps_best_eps_hi", "field2": "anl69_eps_best_eps_lo"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_stddev_signal",
+    "expression": "rank(-vec_avg({field}))",
+    "description": "EPS 标准差信号：标准差越低预测越一致",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_eps_stddev"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_cv",
+    "expression": "rank(-vec_avg({field1}) / (abs(vec_avg({field2})) + 0.001))",
+    "description": "EPS 变异系数：标准差/均值，越低越稳定",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_stddev", "field2": "anl69_eps_best_eps"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "ebitda_momentum",
+    "expression": "rank(vec_avg({field}))",
+    "description": "EBITDA 4 周变化，正值说明盈利预测上调",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_ebitda_4wk_chg"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "roe_momentum",
+    "expression": "rank(vec_avg({field}))",
+    "description": "ROE 4 周变化，正值说明 ROE 预测上调",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_roe_4wk_chg"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "ltg_revision_momentum",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "长期增长修正动量：上调减下调的净数量",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_ltg_4wk_up", "field2": "anl69_best_ltg_4wk_dn"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "ltg_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "长期 EPS 增长率，高增长预期为正面信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_ltg_eps"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "ltg_dispersion",
+    "expression": "rank((vec_avg({field1}) - vec_avg({field2})) / (abs(vec_avg({field1})) + 0.001))",
+    "description": "长期增长分歧度：(最高 - 最低) / 最高",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_ltg_hi", "field2": "anl69_best_ltg_lo"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "gaap_vs_non_gaap",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "Non-GAAP vs GAAP EPS 差异",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_eps_best_eps", "field2": "anl69_eps_best_eps_gaap"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_revision_delta",
+    "expression": "rank(ts_delta(vec_avg({field1}) - vec_avg({field2}), {window}))",
+    "description": "EPS 修正动量的变化：捕捉修正趋势",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "combined_revision",
+    "expression": "rank((vec_avg({field1}) - vec_avg({field2})) + (vec_avg({field3}) - vec_avg({field4})))",
+    "description": "组合修正信号：EPS + 收入修正动量",
+    "fields_required": 4,
+    "field_types": [["event"], ["event"], ["event"], ["event"]],
+    "field_hints": {
+      "field1": "anl69_best_eps_4wk_up",
+      "field2": "anl69_best_eps_4wk_dn",
+      "field3": "anl69_best_sales_4wk_up",
+      "field4": "anl69_best_sales_4wk_dn"
+    },
+    "operators": ["rank", "vec_avg"],
+    "category": "complex"
+  },
+  {
+    "name": "eps_revision_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field1}) - vec_avg({field2}), {window}))",
+    "description": "EPS 修正动量的历史 Z-score，识别异常修正",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "revision_decay",
+    "expression": "rank(ts_decay_linear(vec_avg({field1}) - vec_avg({field2}), {window}))",
+    "description": "衰减加权 EPS 修正，近期修正权重更高",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn"},
+    "operators": ["rank", "ts_decay_linear", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "multi_signal_combo",
+    "expression": "rank((vec_avg({field1}) - vec_avg({field2})) + vec_avg({field3}))",
+    "description": "多信号组合：EPS 修正 + 目标价变化",
+    "fields_required": 3,
+    "field_types": [["event"], ["event"], ["event"]],
+    "field_hints": {
+      "field1": "anl69_best_eps_4wk_up",
+      "field2": "anl69_best_eps_4wk_dn",
+      "field3": "anl69_best_target_4wk_chg"
+    },
+    "operators": ["rank", "vec_avg"],
+    "category": "complex"
+  },
+  {
+    "name": "target_eps_corr",
+    "expression": "rank(ts_corr(vec_avg({field1}), vec_avg({field2}), {window}))",
+    "description": "目标价与 EPS 修正的相关性，识别信号一致性",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_target_4wk_chg", "field2": "anl69_best_eps_chg_pct"},
+    "operators": ["rank", "ts_corr", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_revision_rank",
+    "expression": "rank(ts_rank(vec_avg({field1}) - vec_avg({field2}), {window}))",
+    "description": "EPS 修正动量的时间序列排名",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_best_eps_4wk_up", "field2": "anl69_best_eps_4wk_dn"},
+    "operators": ["rank", "ts_rank", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "analyst_sentiment_change",
+    "expression": "rank(ts_delta(vec_avg({field1}) - vec_avg({field2}), {window}))",
+    "description": "分析师情绪变化：买入减卖出的变化趋势",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_tot_buy_rec", "field2": "anl69_tot_sell_rec"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "smoothed_buy_sentiment",
+    "expression": "rank(ts_mean(vec_avg({field1}) - vec_avg({field2}), {window}))",
+    "description": "平滑的分析师买入情绪，降低换手率",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl69_tot_buy_rec", "field2": "anl69_tot_sell_rec"},
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_sum_eps_up",
+    "expression": "rank(vec_sum({field}))",
+    "description": "EPS 上调数量求和信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_best_eps_4wk_up"},
+    "operators": ["rank", "vec_sum"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_count_signal",
+    "expression": "rank(vec_count({field}))",
+    "description": "向量元素计数，反映数据丰富度",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl69_tot_buy_rec"},
+    "operators": ["rank", "vec_count"],
+    "category": "cross_section"
+  }
+]

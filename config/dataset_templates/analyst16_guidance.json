@@ -1,0 +1,119 @@
+{
+  "dataset_id": "analyst16",
+  "dataset_name": "Real Time Estimates",
+  "description": "分析师实时预估数据，包含分析师修正(clusterestsup/clusterestsdown)、预测惊喜(presurprise/actsurprise)、共识变化(aftercons/beforecons)、Smart模型预估、SRANA评分等",
+  "field_type": "event",
+  "field_type_note": "所有字段均为 VECTOR 类型（BRAIN 平台的 event 类型），需要使用 vec_avg/vec_sum 等操作符转换后才能使用 ts_* 时间序列操作符",
+  "research_directions": [
+    {
+      "name": "分析师修正动量",
+      "description": "分析师上调/下调的数量变化。clusterestsup 为上调分析师数量，clusterestsdown 为下调数量。净值为正说明多数分析师看好。",
+      "field_patterns": ["anl16_clusterestsup", "anl16_clusterestsdown", "anl16_estsup", "anl16_estsdown"],
+      "example_combinations": [
+        {"combo": "anl16_clusterestsup - anl16_clusterestsdown", "logic": "分析师净修正"},
+        {"combo": "anl16_clusterestsup / (anl16_clusterestsdown + 1)", "logic": "上调/下调比率"}
+      ],
+      "suggested_operators": ["rank", "ts_delta", "ts_corr"],
+      "alpha_logic": "上调减下调的净数量，正值预示乐观情绪。此方向是本数据集最常用信号。"
+    },
+    {
+      "name": "预测惊喜信号",
+      "description": "预测/实际盈利惊喜。presurprise 为预测惊喜，actsurprise 为实际惊喜，actsuescore 为惊喜情绪评分。超预期信号对股价有显著影响。",
+      "field_patterns": ["anl16_presurprise", "anl16_actsurprise", "anl16_actsuescore", "anl16_presurprisepct"],
+      "example_fields": ["anl16_presurprise", "anl16_actsurprise", "anl16_actsuescore"],
+      "suggested_operators": ["rank", "ts_delta", "ts_std_dev", "ts_zscore"],
+      "alpha_logic": "正值超预期利好，负值不及预期利空。标准化后使用效果更好。"
+    },
+    {
+      "name": "共识变化信号",
+      "description": "分析师共识的变化。aftercons_* 为修正后共识，beforecons_* 为修正前共识。共识变化反映市场预期调整。",
+      "field_patterns": ["anl16_aftercons_*", "anl16_beforecons_*", "anl16_aftercons_percentage", "anl16_aftercons_difference"],
+      "example_combinations": [
+        {"combo": "anl16_aftercons_mean - anl16_beforecons_mean", "logic": "共识均值变化"},
+        {"combo": "anl16_aftercons_percentage", "logic": "共识百分比变化"}
+      ],
+      "suggested_operators": ["rank", "ts_delta", "abs"],
+      "alpha_logic": "共识上调为正信号，共识下调为负信号。aftercons_percentage 已是百分比变化可直接使用。"
+    },
+    {
+      "name": "预估均值动量",
+      "description": "分析师预估均值的时间变化。meanest 为预估均值，pctchangefrommean 为相对均值变化百分比。预测修正动量可能预示未来收益。",
+      "field_patterns": ["anl16_meanest", "anl16_pctchangefrommean", "anl16_meanest_normal"],
+      "example_fields": ["anl16_meanest", "anl16_pctchangefrommean"],
+      "suggested_operators": ["rank", "ts_delta", "ts_rank", "ts_zscore"],
+      "alpha_logic": "ts_delta(meanest, window) 捕捉预测修正方向，pctchangefrommean 可直接使用。"
+    },
+    {
+      "name": "预测分歧度",
+      "description": "分析师预测的分歧程度。eststddev 为预估标准差，highest/lowest 为最高/最低预测。分歧大可能预示高波动或信息不对称。",
+      "field_patterns": ["anl16_eststddev", "anl16_highest", "anl16_lowest", "anl16_highrec", "anl16_lowrec"],
+      "example_combinations": [
+        {"combo": "anl16_eststddev / abs(anl16_meanest)", "logic": "预估变异系数"},
+        {"combo": "anl16_highest - anl16_lowest", "logic": "预测分歧范围"}
+      ],
+      "suggested_operators": ["rank", "abs", "ts_delta"],
+      "alpha_logic": "分歧度 = stddev / mean 或 highest - lowest，高分歧可能预示高波动。"
+    },
+    {
+      "name": "Smart模型信号",
+      "description": "基于智能模型的预估。smartest 为Smart模型预估，可能比简单均值更准确。",
+      "field_patterns": ["anl16_smartest", "anl16_smartest_normal"],
+      "example_fields": ["anl16_smartest", "anl16_smartest_normal"],
+      "suggested_operators": ["rank", "ts_delta", "ts_rank"],
+      "alpha_logic": "Smart模型可能整合了更多信号，其变化方向有预测能力。"
+    },
+    {
+      "name": "SRANA标准化评分",
+      "description": "标准化分析师评分（1-100分）。sranarecstockt12/t24 为过去12/24月的评分，高分说明分析师整体看好。",
+      "field_patterns": ["anl16_sranarecstockt12", "anl16_sranarecstockt24", "anl16_sranarecstock1through5t12", "anl16_sranaeststock"],
+      "example_fields": ["anl16_sranarecstockt12", "anl16_sranarecstockt24"],
+      "suggested_operators": ["rank", "ts_delta"],
+      "alpha_logic": "高分代表分析师整体看好，评分变化反映分析师情绪转变。"
+    },
+    {
+      "name": "分析师关注度",
+      "description": "覆盖公司的分析师数量。numests 为分析师数量，其变化可能预示信息流入。",
+      "field_patterns": ["anl16_numests", "anl16_numincests", "anl16_beforecons_numitems"],
+      "example_fields": ["anl16_numests"],
+      "suggested_operators": ["rank", "ts_delta", "ts_mean"],
+      "alpha_logic": "ts_delta(numests, window) 捕捉关注度变化，正值为关注度上升。"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "anl16_clusterestsup", "coverage": 0.82, "alpha_count": 2690, "reason": "上调分析师数量，Alpha数量最高，最核心字段"},
+    {"field_id": "anl16_clusterestsdown", "coverage": 0.83, "alpha_count": 962, "reason": "下调分析师数量，与 clusterestsup 配对"},
+    {"field_id": "anl16_pctchangefrommean", "coverage": 0.85, "alpha_count": 368, "reason": "相对均值变化百分比，可直接使用"},
+    {"field_id": "anl16_presurprise", "coverage": 0.93, "alpha_count": 94, "reason": "预测惊喜，超预期信号"},
+    {"field_id": "anl16_actsurprise", "coverage": 0.77, "alpha_count": 96, "reason": "实际盈利惊喜"},
+    {"field_id": "anl16_actsuescore", "coverage": 0.73, "alpha_count": 78, "reason": "盈利意外情绪评分"},
+    {"field_id": "anl16_aftercons_percentage", "coverage": 0.95, "alpha_count": 57, "reason": "共识百分比变化，可直接使用"},
+    {"field_id": "anl16_meanest", "coverage": 0.86, "alpha_count": 76, "reason": "预估均值，预测动量研究核心字段"},
+    {"field_id": "anl16_eststddev", "coverage": 0.83, "alpha_count": 59, "reason": "预估标准差，分歧度研究"},
+    {"field_id": "anl16_numests", "coverage": 0.86, "alpha_count": 106, "reason": "分析师数量，关注度研究"},
+    {"field_id": "anl16_smartest", "coverage": 0.96, "alpha_count": 67, "reason": "Smart模型预估"},
+    {"field_id": "anl16_sranarecstockt12", "coverage": 0.99, "alpha_count": 120, "reason": "SRANA评分（12月），标准化分析师评分"},
+    {"field_id": "anl16_highest", "coverage": 0.86, "alpha_count": 59, "reason": "最高预估，分歧度研究"},
+    {"field_id": "anl16_lowest", "coverage": 0.86, "alpha_count": 71, "reason": "最低预估，与 highest 配对"},
+    {"field_id": "anl16_meanrec", "coverage": 0.68, "alpha_count": 59, "reason": "评级均值，值越低越乐观"},
+    {"field_id": "anl16_aftercons_mean", "coverage": 0.96, "alpha_count": 23, "reason": "修正后共识均值"},
+    {"field_id": "anl16_beforecons_mean", "coverage": 0.96, "alpha_count": 12, "reason": "修正前共识均值，与 aftercons 配对"},
+    {"field_id": "anl16_medianest", "coverage": 0.86, "alpha_count": 53, "reason": "预估中位数，偏态研究"},
+    {"field_id": "anl16_senorm_estcomsplitadj", "coverage": 0.96, "alpha_count": 143, "reason": "调整后准确度评分"}
+  ],
+  "field_pairs": [
+    {"field1": "anl16_clusterestsup", "field2": "anl16_clusterestsdown", "logic": "分析师修正净变化"},
+    {"field1": "anl16_aftercons_mean", "field2": "anl16_beforecons_mean", "logic": "共识均值变化"},
+    {"field1": "anl16_eststddev", "field2": "anl16_meanest", "logic": "预估变异系数"},
+    {"field1": "anl16_highest", "field2": "anl16_lowest", "logic": "预测分歧范围"},
+    {"field1": "anl16_meanest", "field2": "anl16_medianest", "logic": "预估偏态"},
+    {"field1": "anl16_estimate_d1_estvalue", "field2": "anl16_preliminaryestimate_d1_estvalue", "logic": "初步vs最终预估"}
+  ],
+  "guidance_prompt": "**Analyst16 数据集研究方向指引（重要）：**\n此数据集为分析师实时预估数据（Real Time Estimates），包含分析师修正、预测惊喜、共识变化等核心信号。请按以下研究方向推荐字段组合：\n\n**研究方向 1：分析师修正动量（核心）**\n- 配对选择 `anl16_clusterestsup` 与 `anl16_clusterestsdown`\n- Alpha 逻辑：上调减下调的净数量，正值预示乐观情绪\n- 此方向是本数据集最常用、Alpha数量最高的信号\n- 推荐操作：生成 `clusterestsup - clusterestsdown` 类型 Alpha\n\n**研究方向 2：预测惊喜信号**\n- 选择 `anl16_presurprise`（预测惊喜）、`anl16_actsurprise`（实际惊喜）、`anl16_actsuescore`（SUE评分）\n- Alpha 逻辑：正值超预期利好，负值不及预期利空\n- 推荐操作：使用 rank 直接排名或 ts_delta 捕捉变化\n\n**研究方向 3：共识变化信号**\n- 配对选择 `anl16_aftercons_*` 与 `anl16_beforecons_*`\n- 或直接使用 `anl16_aftercons_percentage`（已计算好的百分比变化）\n- Alpha 逻辑：共识上调为正信号，共识下调为负信号\n\n**研究方向 4：预估均值动量**\n- 选择 `anl16_meanest` 或 `anl16_pctchangefrommean`\n- Alpha 逻辑：预测修正方向可能预示未来收益\n- 推荐操作：ts_delta(meanest, window) 或直接使用 pctchangefrommean\n\n**研究方向 5：预测分歧度**\n- 配对选择 `anl16_highest` 与 `anl16_lowest`，或使用 `anl16_eststddev`\n- Alpha 逻辑：分歧大可能预示高波动或信息不对称\n\n**研究方向 6：SRANA标准化评分**\n- 选择 `anl16_sranarecstockt12` 或 `anl16_sranarecstockt24`\n- Alpha 逻辑：高分代表分析师整体看好\n\n**字段选择优先级：**\n1. 优先推荐 clusterestsup/clusterestsdown 配对（Alpha数量最高）\n2. 其次推荐 presurprise/actsurprise 相关字段\n3. 对于共识变化，可直接使用 aftercons_percentage\n4. 覆盖率 > 80% 的字段优先",
+  "recommended_backtest_params": {
+    "window": [5, 10, 20],
+    "decay": [2, 3, 5],
+    "truncation": [0.05, 0.08],
+    "neutralization": ["MARKET", "INDUSTRY"],
+    "rationale": "分析师情绪信号变化快，decay使用较小值（2-5）；情绪数据可能有极端值，truncation适度提高（0.05-0.08）；短期信号市场中性为主"
+  }
+}

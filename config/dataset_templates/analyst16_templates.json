@@ -1,0 +1,282 @@
+[
+  {
+    "name": "revision_momentum",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "分析师修正动量：上调减下调的净数量，捕捉分析师情绪变化",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_clusterestsup", "field2": "anl16_clusterestsdown"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "revision_ratio",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field2}) + 1))",
+    "description": "上调/下调比率，比率>1说明多数分析师看好",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_clusterestsup", "field2": "anl16_clusterestsdown"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "estimate_revision_change",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "预估修正变化：meanest 的时间变化方向",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_meanest"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "pct_change_from_mean",
+    "expression": "rank(vec_avg({field}))",
+    "description": "相对均值的百分比变化，直接使用已计算字段",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_pctchangefrommean"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "predicted_surprise",
+    "expression": "rank(vec_avg({field}) / (ts_std_dev(vec_avg({field}), {window}) + 0.001))",
+    "description": "标准化预测惊喜：预测惊喜除以历史波动",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_presurprise"},
+    "operators": ["rank", "ts_std_dev", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "actual_surprise_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "实际盈利惊喜，正值超预期负值不及预期",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_actsurprise"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "sue_score",
+    "expression": "rank(vec_avg({field}))",
+    "description": "SUE评分：盈利意外的情绪评分",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_actsuescore"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "consensus_dispersion",
+    "expression": "rank(vec_avg({field1}) / (abs(vec_avg({field2})) + 0.001))",
+    "description": "共识分歧度：stddev / meanest，高分歧预示高波动",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_eststddev", "field2": "anl16_meanest"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "consensus_change",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "共识变化：修正后共识减修正前共识",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_aftercons_mean", "field2": "anl16_beforecons_mean"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "consensus_pct_change",
+    "expression": "rank(vec_avg({field}))",
+    "description": "共识百分比变化，直接使用已计算字段",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_aftercons_percentage"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "analyst_coverage_change",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "分析师覆盖变化：numests的时间变化，关注度变化预示信息流入",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_numests"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "smart_estimate_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "Smart模型预估值，基于智能模型的预测",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_smartest"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "smart_estimate_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "Smart预估动量：智能模型预测的变化方向",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_smartest"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "srana_score",
+    "expression": "rank(vec_avg({field}))",
+    "description": "SRANA标准化分析师评分（1-100）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_sranarecstockt12"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "srana_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "SRANA评分动量：分析师评分的变化方向",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_sranarecstockt12"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "revision_acceleration",
+    "expression": "rank(ts_delta(ts_delta(vec_avg({field1}) - vec_avg({field2}), 1), {window}))",
+    "description": "修正加速度：上调减下调的加速度，捕捉修正加速/减速",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_clusterestsup", "field2": "anl16_clusterestsdown"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "complex"
+  },
+  {
+    "name": "high_low_estimate_spread",
+    "expression": "rank((vec_avg({field1}) - vec_avg({field2})) / (abs(vec_avg({field1})) + 0.001))",
+    "description": "预测分歧度：(highest - lowest) / highest，简化为双字段模板",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_highest", "field2": "anl16_lowest"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "estimate_revision_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "预估值历史Z-score，识别异常预测",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_meanest"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "revision_correlation",
+    "expression": "rank(ts_corr(vec_avg({field1}), vec_avg({field2}), {window}))",
+    "description": "上调与下调的相关性，识别修正模式变化",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_clusterestsup", "field2": "anl16_clusterestsdown"},
+    "operators": ["rank", "ts_corr", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "surprise_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "预测惊喜动量：预测惊喜的变化方向",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_presurprise"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "estimate_decay",
+    "expression": "rank(ts_decay_linear(vec_avg({field}), {window}))",
+    "description": "衰减加权预估，近期预测权重更高",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_meanest"},
+    "operators": ["rank", "ts_decay_linear", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "mean_median_deviation",
+    "expression": "rank(abs(vec_avg({field1}) - vec_avg({field2})) / (abs(vec_avg({field1})) + 0.001))",
+    "description": "均值中位数偏离度，反映预测分布偏态",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_meanest", "field2": "anl16_medianest"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "recommendation_mean",
+    "expression": "rank(-vec_avg({field}))",
+    "description": "评级均值，值越低（接近1）评级越乐观",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_meanrec"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "preliminary_vs_final",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "初步预估与最终预估差异，差异大说明信息更新多",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl16_estimate_d1_estvalue", "field2": "anl16_preliminaryestimate_d1_estvalue"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "actgrowth_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "实际值增长率，反映历史增长趋势",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_actgrowth"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "estimate_stability",
+    "expression": "rank(-ts_std_dev(vec_avg({field}), {window}))",
+    "description": "预估稳定性：预估波动越低越稳定",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_meanest"},
+    "operators": ["rank", "ts_std_dev", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "vec_sum_signal",
+    "expression": "rank(vec_sum({field}))",
+    "description": "向量求和信号，适用于计数类字段",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_clusterestsup"},
+    "operators": ["rank", "vec_sum"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_count_signal",
+    "expression": "rank(vec_count({field}))",
+    "description": "向量元素计数，反映数据丰富度",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl16_numests"},
+    "operators": ["rank", "vec_count"],
+    "category": "cross_section"
+  }
+]

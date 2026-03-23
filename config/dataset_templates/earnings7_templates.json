@@ -1,0 +1,462 @@
+[
+  {
+    "name": "eps_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "EPS 信号：直接使用 EPS 金额排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "EPS 动量：EPS 变化方向",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_smoothed",
+    "expression": "rank(ts_mean(vec_avg({field}), {window}))",
+    "description": "平滑 EPS：降低噪声",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "EPS 历史 Z-score：识别异常 EPS",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_rank",
+    "expression": "rank(ts_rank(vec_avg({field}), {window}))",
+    "description": "EPS 时间序列排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_rank", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_decay",
+    "expression": "rank(ts_decay_linear(vec_avg({field}), {window}))",
+    "description": "衰减加权 EPS：近期数据权重更高",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_decay_linear", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "dual_eps_signal",
+    "expression": "rank((vec_avg({field1}) + vec_avg({field2})) / 2)",
+    "description": "双源 EPS 均值信号",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "ern7_co_spe", "field2": "ern7_dsu_spe"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_divergence",
+    "expression": "rank(abs(vec_avg({field1}) - vec_avg({field2})))",
+    "description": "EPS 来源差异：差异大可能有信息不对称",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "ern7_co_spe", "field2": "ern7_dsu_spe"},
+    "operators": ["rank", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "dividend_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "股息信号：直接使用股息金额排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_div_amount_usd"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "dividend_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "股息动量：股息变化方向",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_div_amount_usd"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "dividend_smoothed",
+    "expression": "rank(ts_mean(vec_avg({field}), {window}))",
+    "description": "平滑股息信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_div_amount_usd"},
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "earnings_time_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "财报发布时间信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "earnings_announcement_time_of_day"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "fiscal_quarter_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "财年季度信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "earnings_date_fiscal_quarter"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "next_earnings_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "下季度财报季度信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "next_earnings_quarter"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_dividend_combo",
+    "expression": "rank(vec_avg({field1}) + vec_avg({field2}))",
+    "description": "EPS + 股息组合信号",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "ern7_co_spe", "field2": "ern7_div_amount_usd"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_div_yield",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field2}) + 0.001))",
+    "description": "EPS/股息 比率",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "ern7_co_spe", "field2": "ern7_div_amount_usd"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_acceleration",
+    "expression": "rank(ts_delta(ts_delta(vec_avg({field}), 1), {window}))",
+    "description": "EPS 加速度：变化的变化",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "complex"
+  },
+  {
+    "name": "eps_volatility",
+    "expression": "rank(-ts_std_dev(vec_avg({field}), {window}))",
+    "description": "EPS 波动率：波动越低越稳定",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_std_dev", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_std_dev_signal",
+    "expression": "rank(ts_std_dev(vec_avg({field}), {window}))",
+    "description": "EPS 波动率信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_std_dev", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_vs_dividend_corr",
+    "expression": "rank(ts_corr(vec_avg({field1}), vec_avg({field2}), {window}))",
+    "description": "EPS 与股息相关性",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "ern7_co_spe", "field2": "ern7_div_amount_usd"},
+    "operators": ["rank", "ts_corr", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_median_signal",
+    "expression": "rank(ts_median(vec_avg({field}), {window}))",
+    "description": "EPS 中位数信号：抗极端值",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_median", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_quantile_high",
+    "expression": "rank(ts_quantile(vec_avg({field}), {window}, 0.9))",
+    "description": "EPS 90%分位数信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_quantile", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_quantile_low",
+    "expression": "rank(ts_quantile(vec_avg({field}), {window}, 0.1))",
+    "description": "EPS 10%分位数信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_quantile", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_range",
+    "expression": "rank(ts_quantile(vec_avg({field}), {window}, 0.9) - ts_quantile(vec_avg({field}), {window}, 0.1))",
+    "description": "EPS 区间：90%分位 - 10%分位",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "ts_quantile", "vec_avg"],
+    "category": "complex"
+  },
+  {
+    "name": "eps_vs_dsu_diff",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "两源 EPS 差值",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "ern7_co_spe", "field2": "ern7_dsu_spe"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_vs_dsu_ratio",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field2}) + 0.001))",
+    "description": "两源 EPS 比率",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "ern7_co_spe", "field2": "ern7_dsu_spe"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "vec_count_eps",
+    "expression": "rank(vec_count({field}))",
+    "description": "EPS 数据计数",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "vec_count"],
+    "category": "cross_section"
+  },
+  {
+    "name": "vec_sum_eps",
+    "expression": "rank(vec_sum({field}))",
+    "description": "EPS 求和信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "ern7_co_spe"},
+    "operators": ["rank", "vec_sum"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_fiscal_quarter_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "EPS 财年季度信号：覆盖率 95%+",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_fiscal_quarter"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_fiscal_year_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "EPS 财年信号：覆盖率 95%+",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_fiscal_year"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_original_currency_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "原始货币 EPS 信号：覆盖率 93%+",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_original_currency"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "confcall_quarter_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "电话会议财季信号：覆盖率 90%+",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "confcall_fiscal_quarter"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "confcall_year_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "电话会议财年信号：覆盖率 83%+",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "confcall_financial_year"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "estimated_earnings_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "预测财年信号：覆盖率 87%+",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "estimated_earnings_fiscal_year"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "eps_fiscal_quarter_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "EPS 财季动量信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_fiscal_quarter"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_fiscal_year_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "EPS 财年动量信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_fiscal_year"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_original_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "原始货币 EPS 动量信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_original_currency"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "estimated_earnings_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "预测财年动量信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "estimated_earnings_fiscal_year"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_vs_estimated_diff",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "实际 EPS vs 预测 EPS 差值",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "eps_fiscal_year", "field2": "estimated_earnings_fiscal_year"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_vs_estimated_ratio",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field2}) + 0.001))",
+    "description": "实际 EPS vs 预测 EPS 比率",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "eps_fiscal_year", "field2": "estimated_earnings_fiscal_year"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "quarter_vs_year_eps",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "季度 EPS vs 年度 EPS 差值",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "eps_fiscal_quarter", "field2": "eps_fiscal_year"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "confcall_vs_earnings_quarter",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "电话会议财季 vs 财报财季差异",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "confcall_fiscal_quarter", "field2": "earnings_date_fiscal_quarter"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_original_vs_usd",
+    "expression": "rank(vec_avg({field1}) / (vec_avg({field2}) + 0.001))",
+    "description": "原始货币 EPS vs USD EPS 比率",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "eps_original_currency", "field2": "ern7_co_spe"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "eps_fiscal_smoothed",
+    "expression": "rank(ts_mean(vec_avg({field}), {window}))",
+    "description": "EPS 财年平滑信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_fiscal_year"},
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "eps_fiscal_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "EPS 财年 Z-score 信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "eps_fiscal_year"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "estimated_earnings_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "预测财年 Z-score 信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "estimated_earnings_fiscal_year"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  }
+]

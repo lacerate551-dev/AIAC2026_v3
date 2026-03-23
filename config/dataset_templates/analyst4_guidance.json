@@ -1,0 +1,71 @@
+{
+  "dataset_id": "analyst4",
+  "dataset_name": "Analyst Estimate Data for Equity",
+  "description": "分析师预期数据，包含盈利预测、估值预测、现金流预测等",
+  "research_directions": [
+    {
+      "name": "预期修正信号",
+      "description": "分析师预测的变化趋势，捕捉预期修正方向。当分析师上调/下调预测时，可能预示未来股价走势。",
+      "field_patterns": ["*_flag", "anl4_*_number", "est_*"],
+      "example_fields": ["anl4_netprofit_flag", "anl4_ptp_flag", "anl4_epsr_flag"],
+      "suggested_operators": ["ts_delta", "ts_mean", "ts_rank", "rank"],
+      "alpha_logic": "预期修正动量：ts_delta(flag_field, window) 捕捉修正方向"
+    },
+    {
+      "name": "预测分歧度",
+      "description": "分析师预测的分歧程度。high 与 low 差异大说明分析师意见分歧，可能预示波动。",
+      "field_patterns": ["*_high", "*_low", "*_value", "*_mean", "*_median"],
+      "example_combinations": [
+        {"combo": "anl4_capex_high - anl4_capex_low", "logic": "资本支出预测分歧"},
+        {"combo": "anl4_ebitda_high - anl4_ebitda_low", "logic": "EBITDA预测分歧"}
+      ],
+      "suggested_operators": ["rank", "ts_mean", "ts_std_dev"],
+      "alpha_logic": "分歧度 = (high - low) / mean，高分歧可能预示高波动或信息不对称"
+    },
+    {
+      "name": "预期意外",
+      "description": "实际值与预期值的差异，即 earnings surprise。超预期/不及预期对股价有显著影响。",
+      "field_patterns": ["actual_*", "est_*"],
+      "example_combinations": [
+        {"combo": "actual_eps_value_quarterly - est_eps", "logic": "EPS意外"},
+        {"combo": "actual_sales_value_quarterly - est_sales", "logic": "营收意外"}
+      ],
+      "suggested_operators": ["rank", "sign", "abs"],
+      "alpha_logic": "意外 = (actual - est) / abs(est)，正值超预期，负值不及预期"
+    },
+    {
+      "name": "预测稳定性",
+      "description": "分析师预测的稳定性。预测变化小可能说明公司业绩可预测性强。",
+      "field_patterns": ["*_value", "anl4_*_ft"],
+      "suggested_operators": ["ts_std_dev", "ts_delta", "ts_mean"],
+      "alpha_logic": "ts_std_dev(field, window) 低 = 预测稳定"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "anl4_adjusted_netincome_ft", "coverage": 0.871, "alpha_count": 32031, "reason": "调整后净利润，覆盖率最高，Alpha 数量最多"},
+    {"field_id": "anl4_ebit_value", "coverage": 0.948, "alpha_count": 14218, "reason": "EBIT，高覆盖率"},
+    {"field_id": "anl4_ebitda_value", "coverage": 0.813, "alpha_count": 13857, "reason": "EBITDA，常用估值指标"},
+    {"field_id": "anl4_epsr_value", "coverage": 0.990, "alpha_count": 1661, "reason": "EPS预期值，高覆盖率"},
+    {"field_id": "anl4_epsa_flag", "coverage": 1.000, "alpha_count": 759, "reason": "EPS预测类型，修正信号"},
+    {"field_id": "anl4_afv4_eps_mean", "coverage": 1.000, "alpha_count": 179, "reason": "EPS均值，与 high/low 配对"},
+    {"field_id": "anl4_afv4_eps_high", "coverage": 1.000, "alpha_count": 51, "reason": "EPS预测上限"},
+    {"field_id": "anl4_afv4_eps_low", "coverage": 1.000, "alpha_count": 50, "reason": "EPS预测下限，与 high 配对"},
+    {"field_id": "actual_eps_value_quarterly", "coverage": 1.000, "alpha_count": 106, "reason": "实际EPS季度值，预期意外研究"},
+    {"field_id": "anl4_capex_high", "coverage": 0.617, "alpha_count": 8002, "reason": "资本支出预测上限"},
+    {"field_id": "anl4_capex_low", "coverage": 0.617, "alpha_count": 6999, "reason": "资本支出预测下限，与 high 配对"},
+    {"field_id": "anl4_netprofit_flag", "coverage": 0.878, "alpha_count": 8702, "reason": "净利润预测类型，修正信号"},
+    {"field_id": "anl4_ptp_flag", "coverage": 0.829, "alpha_count": 17522, "reason": "税前利润预测类型，Alpha 数量高"},
+    {"field_id": "anl4_epsr_flag", "coverage": 0.874, "alpha_count": 10090, "reason": "GAAP EPS 预测类型"},
+    {"field_id": "anl4_bvps_flag", "coverage": 0.822, "alpha_count": 10431, "reason": "每股账面价值预测类型"},
+    {"field_id": "anl4_cfo_value", "coverage": 0.581, "alpha_count": 6152, "reason": "经营现金流，与 CFO high/low 配对"}
+  ],
+  "field_pairs": [
+    {"field1": "anl4_capex_high", "field2": "anl4_capex_low", "logic": "资本支出预测分歧"},
+    {"field1": "anl4_ebitda_high", "field2": "anl4_ebitda_low", "logic": "EBITDA预测分歧"},
+    {"field1": "anl4_cfo_high", "field2": "anl4_cfo_low", "logic": "现金流预测分歧"},
+    {"field1": "anl4_epsr_high", "field2": "anl4_epsr_low", "logic": "EPS预测分歧"},
+    {"field1": "actual_eps_value_quarterly", "field2": "est_eps", "logic": "EPS预期意外"},
+    {"field1": "actual_sales_value_quarterly", "field2": "est_sales", "logic": "营收预期意外"}
+  ],
+  "guidance_prompt": "**Analyst4 数据集研究方向指引（重要）：**\n此数据集为分析师预期数据（Analyst Estimate Data），包含分析师对公司未来业绩的预测。请按以下研究方向推荐字段组合：\n\n**研究方向 1：预期修正信号**\n- 选择 `*_flag` 类型字段（如 anl4_netprofit_flag, anl4_ptp_flag, anl4_epsr_flag）\n- Alpha 逻辑：分析师修正预测的方向可能预示未来股价走势\n- 推荐操作：使用 ts_delta(flag_field, window) 捕捉修正方向\n\n**研究方向 2：预测分歧度**\n- 配对选择 `*_high` 与 `*_low` 字段（如 anl4_capex_high 与 anl4_capex_low）\n- Alpha 逻辑：分析师分歧大可能预示高波动或信息不对称\n- 推荐操作：生成 (high - low) / value 或 high / low 类型的 Alpha\n\n**研究方向 3：预期意外**\n- 配对选择 `actual_*` 与 `est_*` 字段（如 actual_eps_value_quarterly 与 est_eps）\n- Alpha 逻辑：实际值超预期/不及预期对股价有显著影响\n- 推荐操作：生成 (actual - est) / abs(est) 类型的 Alpha\n\n**字段选择优先级：**\n1. 优先推荐 priority_fields 列表中的高价值字段\n2. 对于研究方向 2 和 3，确保推荐的字段可以配对使用\n3. 覆盖率 > 60% 的字段优先"
+}

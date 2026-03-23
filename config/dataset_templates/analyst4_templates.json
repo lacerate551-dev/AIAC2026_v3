@@ -1,0 +1,146 @@
+[
+  {
+    "name": "analyst_dispersion",
+    "expression": "rank(({field1} - {field2}) / (abs({field3}) + 0.001))",
+    "description": "分析师预测分歧度：(high - low) / value，分歧大可能预示高波动",
+    "fields_required": 3,
+    "field_types": [["vector"], ["vector"], ["vector"]],
+    "field_hints": {"field1": "*_high", "field2": "*_low", "field3": "*_value"},
+    "operators": ["rank", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "high_low_ratio",
+    "expression": "rank({field1} / ({field2} + 0.001))",
+    "description": "最高/最低预测比率，比率接近1说明分析师意见一致",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "*_high", "field2": "*_low"},
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "estimate_revision_momentum",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "预期修正动量：分析师预测变化方向",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*_flag"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "estimate_revision_reversal",
+    "expression": "rank(-ts_delta({field}, {window}))",
+    "description": "预期修正反转：分析师预测变化反向",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*_flag"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "actual_est_surprise",
+    "expression": "rank(({field1} - {field2}) / (abs({field2}) + 0.001))",
+    "description": "预期意外：(actual - est) / est，正值超预期，负值不及预期",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "actual_*", "field2": "est_*"},
+    "operators": ["rank", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "estimate_zscore",
+    "expression": "rank(ts_zscore({field}, {window}))",
+    "description": "预期值的历史 Z-score，识别异常预测值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_zscore"],
+    "category": "time_series"
+  },
+  {
+    "name": "revision_acceleration",
+    "expression": "rank(ts_delta(ts_delta({field}, 1), {window}))",
+    "description": "预期修正加速度：修正的变化率，捕捉修正加速/减速",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*_flag"},
+    "operators": ["rank", "ts_delta"],
+    "category": "complex"
+  },
+  {
+    "name": "estimate_momentum_ranked",
+    "expression": "rank(ts_rank({field}, {window}))",
+    "description": "预期值时序排名的截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_rank"],
+    "category": "time_series"
+  },
+  {
+    "name": "dispersion_change",
+    "expression": "rank(ts_delta({field1} - {field2}, {window}))",
+    "description": "分歧度变化：high-low 差值的时间变化",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "*_high", "field2": "*_low"},
+    "operators": ["rank", "ts_delta"],
+    "category": "pair"
+  },
+  {
+    "name": "estimate_volatility",
+    "expression": "rank(ts_std_dev({field}, {window}))",
+    "description": "预期波动率：分析师预测的不稳定性",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_std_dev"],
+    "category": "time_series"
+  },
+  {
+    "name": "estimate_decay_momentum",
+    "expression": "rank(ts_decay_linear({field}, {window}))",
+    "description": "衰减加权预期值，近期预测权重更高",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_decay_linear"],
+    "category": "time_series"
+  },
+  {
+    "name": "high_low_correlation",
+    "expression": "rank(ts_corr({field1}, {field2}, {window}))",
+    "description": "最高/最低预测相关性，识别预测一致性变化",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "*_high", "field2": "*_low"},
+    "operators": ["rank", "ts_corr"],
+    "category": "pair"
+  },
+  {
+    "name": "flag_field_rank",
+    "expression": "rank({field})",
+    "description": "Flag 字段直接排名，捕捉预测类型分布",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*_flag"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "value_normalized",
+    "expression": "rank(zscore({field}))",
+    "description": "预测值标准化排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "zscore"],
+    "category": "cross_section"
+  },
+  {
+    "name": "estimate_mean_deviation",
+    "expression": "rank({field} - ts_mean({field}, {window}))",
+    "description": "预测值偏离历史均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "operators": ["rank", "ts_mean"],
+    "category": "time_series"
+  }
+]

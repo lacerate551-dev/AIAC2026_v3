@@ -1,0 +1,68 @@
+{
+  "dataset_id": "model250",
+  "dataset_name": "Nonlinear adaptive model",
+  "description": "ML/AI 非线性自适应模型输出数据，包含多个预测模型的评分信号",
+  "research_directions": [
+    {
+      "name": "模型评分动量",
+      "description": "ML模型评分的时间序列动量。模型评分的变化方向可能预示股票未来走势。",
+      "field_patterns": ["mdl250_*_eq_*", "mdl250_*_score"],
+      "example_fields": ["mdl250_eq_medium", "mdl250_eq_short", "mdl250_malta_eq_score"],
+      "suggested_operators": ["ts_delta", "ts_mean", "ts_rank", "rank"],
+      "alpha_logic": "模型评分动量：ts_delta(score_field, window) 捕捉评分变化方向"
+    },
+    {
+      "name": "多模型信号一致性",
+      "description": "不同时间周期模型信号的一致性。当短期、中期、长期模型方向一致时，信号更可靠。",
+      "field_patterns": ["mdl250_eq_short", "mdl250_eq_medium", "mdl250_eq_seasonality"],
+      "example_combinations": [
+        {"combo": "mdl250_eq_short + mdl250_eq_medium", "logic": "短中期信号叠加"},
+        {"combo": "mdl250_eq_short - mdl250_eq_seasonality", "logic": "短期与季节性差异"}
+      ],
+      "suggested_operators": ["rank", "ts_corr", "sign"],
+      "alpha_logic": "多模型一致性 = 短期信号与长期信号同向时权重更高"
+    },
+    {
+      "name": "MALTA 复合评分信号",
+      "description": "MALTA 复合评分是模型的核心输出，综合反映多个因子。评分变化和截面排名都有预测价值。",
+      "field_patterns": ["mdl250_malta_eq_score", "mdl250_maltahc_eq_score", "mdl250_lmt_*_score"],
+      "example_fields": ["mdl250_malta_eq_score", "mdl250_maltahc_eq_score"],
+      "suggested_operators": ["rank", "ts_delta", "ts_zscore", "ts_decay_linear"],
+      "alpha_logic": "MALTA评分高 = 模型预测该股票未来表现好"
+    },
+    {
+      "name": "Hedge 保护信号",
+      "description": "Hedge 模型提供下行保护信号，用于识别市场压力时期的防御性股票。",
+      "field_patterns": ["mdl250_eq_hedge", "mdl250_hc_eq_hedge"],
+      "example_fields": ["mdl250_eq_hedge", "mdl250_hc_eq_hedge"],
+      "suggested_operators": ["rank", "ts_mean", "ts_max"],
+      "alpha_logic": "Hedge评分高 = 该股票在市场下行时有较好保护"
+    },
+    {
+      "name": "高置信度信号",
+      "description": "hc (high conviction) 版本的模型评分代表更高置信度的预测，可用于筛选高确定性信号。",
+      "field_patterns": ["mdl250_hc_eq_*", "mdl250_maltahc_eq_score"],
+      "example_fields": ["mdl250_hc_eq_medium", "mdl250_hc_eq_seasonality", "mdl250_maltahc_eq_score"],
+      "suggested_operators": ["rank", "ts_delta"],
+      "alpha_logic": "HC版本 = 模型更有信心的预测，可作为增强信号"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "mdl250_maltahc_eq_score", "coverage": 0.8575, "alpha_count": 138, "reason": "MALTA HC 复合评分，高置信度核心信号，Alpha 数量最多"},
+    {"field_id": "mdl250_malta_eq_score", "coverage": 0.8575, "alpha_count": 124, "reason": "MALTA 复合评分，核心输出"},
+    {"field_id": "mdl250_hc_eq_seasonality", "coverage": 0.8575, "alpha_count": 88, "reason": "季节性 HC 评分，长期模式"},
+    {"field_id": "mdl250_eq_medium", "coverage": 0.8575, "alpha_count": 83, "reason": "Medium 模型评分，12月滚动窗口"},
+    {"field_id": "mdl250_lmt_close_eq_score", "coverage": 0.8575, "alpha_count": 64, "reason": "限制版收盘评分"},
+    {"field_id": "mdl250_eq_seasonality", "coverage": 0.8575, "alpha_count": 42, "reason": "季节性模型评分，10年同月窗口"},
+    {"field_id": "mdl250_eq_hedge", "coverage": 0.8575, "alpha_count": 24, "reason": "Hedge 模型评分，下行保护"},
+    {"field_id": "mdl250_eq_short", "coverage": 0.8575, "alpha_count": 25, "reason": "Short 模型评分，上月数据"}
+  ],
+  "field_pairs": [
+    {"field1": "mdl250_eq_short", "field2": "mdl250_eq_medium", "logic": "短中期信号对比"},
+    {"field1": "mdl250_eq_short", "field2": "mdl250_eq_seasonality", "logic": "短期与季节性信号对比"},
+    {"field1": "mdl250_malta_eq_score", "field2": "mdl250_maltahc_eq_score", "logic": "标准与高置信度MALTA对比"},
+    {"field1": "mdl250_eq_hedge", "field2": "mdl250_hc_eq_hedge", "logic": "标准与高置信度Hedge对比"},
+    {"field1": "mdl250_eq_medium", "field2": "mdl250_hc_eq_medium", "logic": "标准与高置信度Medium对比"}
+  ],
+  "guidance_prompt": "**Model250 数据集研究方向指引（重要）：**\n此数据集为 ML/AI 非线性自适应模型输出（Nonlinear adaptive model），包含多个预测模型的评分信号。请按以下研究方向推荐字段组合：\n\n**研究方向 1：模型评分动量**\n- 选择 `mdl250_*_score` 或 `mdl250_eq_*` 类型字段\n- Alpha 逻辑：模型评分的变化方向可能预示股票未来走势\n- 推荐操作：使用 ts_delta(score_field, window) 捕捉评分变化\n\n**研究方向 2：多模型信号一致性**\n- 组合选择 `mdl250_eq_short`、`mdl250_eq_medium`、`mdl250_eq_seasonality`\n- Alpha 逻辑：多模型信号一致时预测更可靠\n- 推荐操作：计算模型间相关性或差值\n\n**研究方向 3：MALTA 复合评分信号**\n- 优先选择 `mdl250_maltahc_eq_score`（高置信度）或 `mdl250_malta_eq_score`\n- Alpha 逻辑：MALTA 评分是模型核心输出，综合反映多个因子\n- 推荐操作：rank(score) 或 ts_delta(score, window)\n\n**研究方向 4：Hedge 保护信号**\n- 选择 `mdl250_eq_hedge` 或 `mdl250_hc_eq_hedge`\n- Alpha 逻辑：Hedge 评分高的股票在市场下行时有较好保护\n- 推荐操作：rank(hedge_field) 作为防御因子\n\n**研究方向 5：高置信度信号**\n- 选择 `mdl250_hc_eq_*` 或 `mdl250_maltahc_eq_score` 字段\n- Alpha 逻辑：HC 版本代表模型更高置信度的预测\n- 推荐操作：与标准版本对比，或单独作为增强信号\n\n**字段选择优先级：**\n1. 优先推荐 priority_fields 列表中的高 Alpha 数量字段\n2. MALTA 评分字段是最核心的输出，优先考虑\n3. 组合使用标准版本和 HC 版本可增强信号"
+}
