@@ -45,7 +45,8 @@ research/
 *.log
 
 # Generated Content
-ai/generated_strategies/*.json
+ai/generated_strategies/
+!ai/generated_strategies/.gitkeep
 memory/
 
 # Temporary Files
