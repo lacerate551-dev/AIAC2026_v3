@@ -715,3 +715,120 @@ ERROR_FIX_PROMPT = """
 
 请严格按照 JSON 格式输出，不要包含任何其他文字。
 """
+
+
+DATASET_CONFIG_GENERATION_PROMPT = """
+你是一位资深量化研究员。请深度分析以下数据集，为其生成研究方向和 Alpha 模板配置。
+
+**数据集信息：**
+- Region: {region}
+- Dataset ID: {dataset_id}
+- Dataset Name: {dataset_name}
+- Dataset Description: {dataset_description}
+
+**字段列表（共 {total_fields} 个）：**
+{fields_metadata}
+
+**可用操作符：**
+{operators_metadata}
+
+**字段类型说明（重要）：**
+- `MATRIX`: 数值时间序列字段，可直接用于 ts_mean/ts_delta/rank/zscore/scale 等操作符
+- `VECTOR`: 事件型数据（event data），**需要先使用 vec_sum/vec_avg/vec_count 等操作符转换为 vector 后才能使用 rank/ts_mean 等**
+  - 错误用法：`rank(vector_field)` → 报错 "does not support event inputs"
+  - 正确用法：`rank(vec_sum(vector_field))` 或 `rank(vec_avg(vector_field))`
+- `GROUP`: 分组字段（如 industry, sector），仅用于 group_neutralize 的第二参数
+- `SYMBOL`: 标识符字段（如 ticker, cusip），不能用于数值计算
+
+**任务要求：**
+
+## 任务 1：数据集特征分析
+请分析数据集的整体特征：
+- 数据类型：价量数据/基本面数据/分析师预期/技术指标/情绪数据/模型预测/其他
+- 更新频率：日频/周频/月频/季度/年度/实时
+- 数据维度：截面为主/时序为主/混合
+- Alpha 潜力：高/中/低，并说明理由
+
+## 任务 2：研究方向生成（{num_directions} 个）
+请为该数据集设计 {num_directions} 个研究方向，每个方向包含：
+- name: 方向名称（简洁，如"预期修正信号"）
+- description: 方向描述（50 字以内，说明核心逻辑）
+- field_patterns: 字段模式列表（如 ["*_flag", "*_value"]，用于匹配字段）
+- example_fields: 示例字段（2-3 个该方向的核心字段）
+- suggested_operators: 建议的操作符（3-5 个）
+- alpha_logic: Alpha 构建逻辑（如何使用这些字段构建 Alpha）
+
+## 任务 3：优先字段推荐（10-15 个）
+请推荐最有价值的核心字段，每个字段包含：
+- field_id: 字段 ID
+- field_type: 金融语义类型（Price/Volume/Returns/Fundamental/Technical/Sentiment/Analyst/Model/Other）
+- data_type: 平台数据类型（MATRIX/VECTOR/GROUP/SYMBOL）
+- coverage: 覆盖率（如有）
+- logic: 金融逻辑（30 字以内）
+- priority: 优先级（1-5，1 最高）
+
+## 任务 4：字段配对推荐（5-8 对）
+推荐适合配对使用的字段组合：
+- field1, field2: 配对字段
+- logic: 配对逻辑
+
+## 任务 5：模板生成（{num_templates} 个）
+请生成 {num_templates} 个 Alpha 模板，要求：
+- 覆盖时序型（time_series）、截面型（cross_section）、配对型（pair）、复杂型（complex）等多种类型
+- 每个模板包含：name, expression, description, fields_required, field_types, field_hints, operators, category
+- 表达式中使用 {{field}}, {{field1}}, {{field2}}, {{window}} 等占位符
+- field_hints 使用通配符模式匹配字段（如 "*_high", "mdl250_eq_*"）
+
+**输出格式（必须为 JSON）：**
+{{
+    "dataset_characteristics": {{
+        "data_category": "分析师预期数据",
+        "update_frequency": "季度",
+        "data_dimension": "截面为主",
+        "alpha_potential": "高",
+        "alpha_potential_reason": "分析师预期变化对股价有显著影响"
+    }},
+    "research_directions": [
+        {{
+            "name": "预期修正信号",
+            "description": "分析师预测的变化趋势，捕捉预期修正方向",
+            "field_patterns": ["*_flag", "*_number"],
+            "example_fields": ["anl4_epsr_flag", "anl4_netprofit_flag"],
+            "suggested_operators": ["ts_delta", "rank", "ts_mean"],
+            "alpha_logic": "ts_delta(flag_field, window) 捕捉修正方向"
+        }}
+    ],
+    "priority_fields": [
+        {{
+            "field_id": "anl4_adjusted_netincome_ft",
+            "field_type": "Fundamental",
+            "data_type": "MATRIX",
+            "coverage": 0.871,
+            "logic": "调整后净利润，覆盖率最高",
+            "priority": 1
+        }}
+    ],
+    "field_pairs": [
+        {{
+            "field1": "anl4_capex_high",
+            "field2": "anl4_capex_low",
+            "logic": "资本支出预测分歧"
+        }}
+    ],
+    "templates": [
+        {{
+            "name": "estimate_revision_momentum",
+            "expression": "rank(ts_delta({{field}}, {{window}}))",
+            "description": "预期修正动量：分析师预测变化方向",
+            "fields_required": 1,
+            "field_types": [["vector"]],
+            "field_hints": {{"field": "*_flag"}},
+            "operators": ["rank", "ts_delta"],
+            "category": "time_series"
+        }}
+    ],
+    "guidance_prompt": "**{dataset_id} 数据集研究方向指引（重要）：**\\n此数据集为..."
+}}
+
+请严格按照 JSON 格式输出，不要包含任何其他文字。
+"""

@@ -52,6 +52,7 @@ def print_menu():
     print("│  10. 回测结果筛选/导出                │")
     print("│  11. Alpha 优化器                    │")
     print("│  12. Alpha 组合优化                  │")
+    print("│  13. AI 数据集配置生成器              │")
     print("│  0. 退出                            │")
     print("└─────────────────────────────────────┘")
 
@@ -1383,6 +1384,238 @@ def handle_batch_combination_optimizer():
             print(f"  表达式: {best.get('expression', 'N/A')[:60]}...")
 
 
+def handle_dataset_config_generator():
+    """
+    AI 数据集配置生成器：
+    自动分析新数据集并生成研究方向和模板配置。
+    """
+    from ai.researcher_brain import AIResearcher
+    from ai.metadata_builder import build_field_metadata
+    from pathlib import Path
+    import json
+
+    print("\n=== 🔮 AI 数据集配置生成器 ===")
+    print("自动分析新数据集并生成研究方向和模板配置。")
+
+    if not SessionManager.is_logged_in():
+        print("❌ 请先登录（菜单 1）")
+        return
+    session = SessionManager.get_session()
+
+    # 输入数据集信息
+    print("\n可用区域:", ", ".join(REGION_DEFAULTS.keys()))
+    region = input("请输入区域代码 (如 USA): ").strip().upper()
+    if not region:
+        print("❌ 区域代码不能为空")
+        return
+
+    dataset_id = input("请输入数据集 ID (如 analyst10): ").strip().lower()
+    if not dataset_id:
+        print("❌ 数据集 ID 不能为空")
+        return
+
+    # 检查是否已存在配置
+    from ai.template_loader import load_guidance
+    existing_guidance = load_guidance(dataset_id)
+    if existing_guidance:
+        print(f"\n⚠️  数据集 '{dataset_id}' 已有配置文件")
+        overwrite = input("是否覆盖? (y/N): ").strip().lower()
+        if overwrite != "y":
+            print("已取消")
+            return
+
+    # 配置参数
+    defaults = REGION_DEFAULTS.get(region, {"universe": "TOP3000", "delay": 1})
+    universe = input(f"Universe (默认 {defaults['universe']}): ").strip() or defaults["universe"]
+    try:
+        delay = int(input(f"Delay (默认 {defaults['delay']}): ").strip() or str(defaults["delay"]))
+    except ValueError:
+        delay = defaults["delay"]
+
+    try:
+        num_directions = int(input("研究方向数量 (默认 4): ").strip() or "4")
+        num_templates = int(input("模板数量 (默认 20): ").strip() or "20")
+    except ValueError:
+        num_directions, num_templates = 4, 20
+
+    # 获取数据集信息
+    print(f"\n🔍 获取数据集 {region}/{dataset_id} 信息...")
+    datasets_df = DataManager.get_datasets(session, region, universe=universe, delay=delay)
+    if datasets_df is None or datasets_df.empty:
+        print("❌ 未获取到数据集列表")
+        return
+
+    # 查找数据集
+    dataset_row = datasets_df[datasets_df["id"].str.lower() == dataset_id]
+    if dataset_row.empty:
+        print(f"❌ 未找到数据集 '{dataset_id}'")
+        print("可用数据集:", datasets_df["id"].head(20).tolist())
+        return
+
+    dataset_name = dataset_row.iloc[0].get("name", dataset_id)
+    dataset_description = dataset_row.iloc[0].get("description", "")
+
+    # 获取字段列表
+    print(f"🔍 获取字段列表...")
+    fields_df = DataManager.get_fields(session, region, dataset_id, universe=universe, delay=delay)
+    if fields_df is None or fields_df.empty:
+        print("❌ 未获取到字段列表")
+        return
+
+    print(f"   数据集: {dataset_name}")
+    print(f"   字段数: {len(fields_df)}")
+
+    # 构建字段 metadata
+    fields_metadata = []
+    for _, row in fields_df.iterrows():
+        fields_metadata.append({
+            "field_id": row.get("id", ""),
+            "field_name": row.get("name", ""),
+            "type": row.get("type", "MATRIX"),
+            "coverage": row.get("coverage", 0),
+            "description": row.get("description", ""),
+        })
+
+    # 获取操作符列表
+    operators_df = DataManager.get_operators(session)
+    operators_list = operators_df["name"].tolist() if operators_df is not None else []
+
+    # 初始化 AI 研究员
+    try:
+        researcher = AIResearcher()
+        print(f"\n✅ AI 研究员已初始化（使用模型: {researcher.provider}）")
+    except Exception as e:
+        print(f"❌ AI 初始化失败: {e}")
+        return
+
+    # 执行配置生成
+    print(f"\n{'='*60}")
+    print(f"开始生成配置...")
+    print(f"  研究方向: {num_directions} 个")
+    print(f"  模板: {num_templates} 个")
+    print(f"{'='*60}")
+
+    try:
+        result = researcher.generate_dataset_config(
+            region=region,
+            dataset_id=dataset_id,
+            dataset_name=dataset_name,
+            dataset_description=dataset_description,
+            fields_metadata=fields_metadata,
+            operators_list=operators_list,
+            num_templates=num_templates,
+            num_directions=num_directions,
+        )
+    except Exception as e:
+        print(f"❌ 配置生成失败: {e}")
+        import traceback
+        traceback.print_exc()
+        return
+
+    # === 干预窗口 A：研究方向 ===
+    def display_research_directions(data):
+        directions = data.get("research_directions", [])
+        print(f"\n{'='*70}")
+        print(f"📊 研究方向（共 {len(directions)} 个）")
+        print(f"{'='*70}")
+        for i, d in enumerate(directions, 1):
+            print(f"\n{i}. {d.get('name', 'N/A')}")
+            print(f"   描述: {d.get('description', 'N/A')}")
+            print(f"   字段模式: {', '.join(d.get('field_patterns', []))}")
+            print(f"   建议操作符: {', '.join(d.get('suggested_operators', []))}")
+            print(f"   Alpha 逻辑: {d.get('alpha_logic', 'N/A')}")
+
+    action, result = intervention_gate(
+        "研究方向",
+        display_research_directions,
+        _edit_config_list,
+        result
+    )
+    if action == "cancel":
+        return
+
+    # === 干预窗口 B：优先字段 ===
+    def display_priority_fields(data):
+        fields = data.get("priority_fields", [])
+        print(f"\n{'='*70}")
+        print(f"📋 优先字段（共 {len(fields)} 个）")
+        print(f"{'='*70}")
+        print("\n| # | 字段 ID | 类型 | 数据类型 | 覆盖率 | 逻辑 |")
+        print("|---|---------|------|----------|--------|------|")
+        for i, f in enumerate(fields, 1):
+            cov = f.get('coverage')
+            cov_str = f"{cov:.1%}" if cov else "N/A"
+            logic = f.get('logic', '')[:25]
+            print(f"| {i} | {f.get('field_id', 'N/A')} | {f.get('field_type', 'N/A')} | "
+                  f"{f.get('data_type', 'N/A')} | {cov_str} | {logic} |")
+
+    action, result = intervention_gate(
+        "优先字段",
+        display_priority_fields,
+        _edit_config_list,
+        result
+    )
+    if action == "cancel":
+        return
+
+    # === 干预窗口 C：模板列表 ===
+    def display_templates(data):
+        templates = data.get("templates", [])
+        print(f"\n{'='*70}")
+        print(f"📐 模板列表（共 {len(templates)} 个）")
+        print(f"{'='*70}")
+        for i, t in enumerate(templates, 1):
+            print(f"\n{i}. [{t.get('category', 'N/A')}] {t.get('name', 'N/A')}")
+            print(f"   表达式: {t.get('expression', 'N/A')}")
+            print(f"   描述: {t.get('description', 'N/A')}")
+
+    action, result = intervention_gate(
+        "模板列表",
+        display_templates,
+        _edit_config_list,
+        result
+    )
+    if action == "cancel":
+        return
+
+    # === 保存配置 ===
+    save_choice = input("\n是否保存配置文件? (Y/n): ").strip().lower()
+    if save_choice == "n":
+        print("已取消保存")
+        return
+
+    # 保存文件
+    output_dir = Path("config/dataset_templates")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    templates_file = output_dir / f"{dataset_id}_templates.json"
+    guidance_file = output_dir / f"{dataset_id}_guidance.json"
+
+    with open(templates_file, "w", encoding="utf-8") as f:
+        json.dump(result["templates"], f, ensure_ascii=False, indent=2)
+
+    with open(guidance_file, "w", encoding="utf-8") as f:
+        json.dump(result["guidance"], f, ensure_ascii=False, indent=2)
+
+    print(f"\n✅ 配置已保存:")
+    print(f"   模板文件: {templates_file}")
+    print(f"   引导文件: {guidance_file}")
+
+    # 显示使用说明
+    print(f"\n📖 使用说明:")
+    print(f"   运行 Pipeline 时使用 --template-mode specialized")
+    print(f"   python main.py pipeline --region {region} --datasets {dataset_id} --template-mode specialized")
+
+
+def _edit_config_list(data, instruction):
+    """简单的配置列表编辑函数"""
+    # 简单实现：直接返回原数据
+    # 复杂编辑可以通过 AI 实现
+    print(f"  收到编辑指令: {instruction}")
+    print(f"  （暂不支持自动编辑，请手动修改保存后的配置文件）")
+    return data
+
+
 def print_multi_analysis_result(result):
     """格式化打印多数据集联合分析结果"""
     # 数据集维度分析
@@ -2189,6 +2422,8 @@ def interactive_mode():
                 handle_alpha_optimizer()
             elif choice == "12":
                 handle_batch_combination_optimizer()
+            elif choice == "13":
+                handle_dataset_config_generator()
             else:
                 print("❌ 无效选项，请重新选择")
         except KeyboardInterrupt:

@@ -24,7 +24,7 @@ AI_MODELS = {
     "deepseek": {
         "display_name": "DeepSeek Chat",
         "temperature": 0.7,
-        "max_tokens": 4000,
+        "max_tokens":  8192,
         "description": "DeepSeek 模型（通过硅基流动）"
     }
 }

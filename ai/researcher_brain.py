@@ -1359,3 +1359,116 @@ class AIResearcher:
         ai_result["stats"] = stats
 
         return ai_result
+
+    def generate_dataset_config(
+        self,
+        region: str,
+        dataset_id: str,
+        dataset_name: str,
+        dataset_description: str,
+        fields_metadata: List[Dict[str, Any]],
+        operators_list: List[str],
+        num_templates: int = 20,
+        num_directions: int = 4,
+    ) -> Dict[str, Any]:
+        """
+        AI 自动分析新数据集并生成研究方向和模板配置。
+
+        Args:
+            region: 区域代码（如 USA）
+            dataset_id: 数据集 ID（如 analyst10）
+            dataset_name: 数据集名称
+            dataset_description: 数据集描述
+            fields_metadata: 字段元数据列表
+            operators_list: 可用操作符列表
+            num_templates: 生成模板数量（默认 20）
+            num_directions: 研究方向数量（默认 4）
+
+        Returns:
+            {
+                "dataset_id": "...",
+                "dataset_name": "...",
+                "research_directions": [...],
+                "priority_fields": [...],
+                "field_pairs": [...],
+                "templates": [...],
+                "guidance": {...}
+            }
+        """
+        from ai.prompt_templates import DATASET_CONFIG_GENERATION_PROMPT
+
+        self.logger.info(f"开始生成数据集配置: {dataset_id}")
+
+        # 1. 准备字段元数据字符串（限制数量避免 token 过多）
+        max_fields = 150
+        fields_to_send = fields_metadata[:max_fields]
+
+        fields_str_lines = []
+        for f in fields_to_send:
+            field_id = f.get("field_id", f.get("id", "unknown"))
+            field_name = f.get("field_name", f.get("name", ""))
+            coverage = f.get("coverage", 0)
+            field_type = f.get("type", f.get("normalized_type", "MATRIX"))
+            description = f.get("description", "")[:50] if f.get("description") else ""
+
+            fields_str_lines.append(
+                f"- {field_id}: type={field_type}, coverage={coverage:.2%}, desc={description}"
+            )
+
+        fields_str = "\n".join(fields_str_lines)
+        if len(fields_metadata) > max_fields:
+            fields_str += f"\n... (共 {len(fields_metadata)} 个字段，仅显示前 {max_fields} 个)"
+
+        # 2. 准备操作符列表字符串
+        operators_str = ", ".join(operators_list[:100])
+        if len(operators_list) > 100:
+            operators_str += f" ... (共 {len(operators_list)} 个)"
+
+        # 3. 构建 Prompt
+        prompt = DATASET_CONFIG_GENERATION_PROMPT.format(
+            region=region,
+            dataset_id=dataset_id,
+            dataset_name=dataset_name,
+            dataset_description=dataset_description or "无描述",
+            total_fields=len(fields_metadata),
+            fields_metadata=fields_str,
+            operators_metadata=operators_str,
+            num_directions=num_directions,
+            num_templates=num_templates,
+        )
+
+        # 4. 调用 AI
+        self.logger.info("调用 AI 生成数据集配置...")
+        ai_result = self._call_ai(prompt, json_mode=True)
+
+        # 5. 构建返回结果
+        result = {
+            "dataset_id": dataset_id,
+            "dataset_name": dataset_name,
+            "description": dataset_description,
+            "field_analysis": {
+                "total_fields": len(fields_metadata),
+                "matrix_fields": sum(1 for f in fields_metadata if f.get("type", f.get("normalized_type", "")) in ["MATRIX", "vector"]),
+                "vector_fields": sum(1 for f in fields_metadata if f.get("type", f.get("normalized_type", "")) in ["VECTOR", "event"]),
+            },
+            "research_directions": ai_result.get("research_directions", []),
+            "priority_fields": ai_result.get("priority_fields", []),
+            "field_pairs": ai_result.get("field_pairs", []),
+            "templates": ai_result.get("templates", []),
+            "guidance": {
+                "dataset_id": dataset_id,
+                "dataset_name": dataset_name,
+                "description": dataset_description,
+                "research_directions": ai_result.get("research_directions", []),
+                "priority_fields": ai_result.get("priority_fields", []),
+                "field_pairs": ai_result.get("field_pairs", []),
+                "guidance_prompt": ai_result.get("guidance_prompt", ""),
+            },
+        }
+
+        self.logger.info(
+            f"数据集配置生成完成: {len(result['research_directions'])} 个研究方向, "
+            f"{len(result['templates'])} 个模板"
+        )
+
+        return result
