@@ -329,10 +329,11 @@ def step_alpha_generation(
 def step_dedup(
     alpha_items: List[Dict[str, Any]],
     max_per_structure: int = 3,
+    keep_fields_in_structure: bool = True,
 ) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
     """按结构去重。可独立调用。Returns (deduped_list, stats)."""
     from ai.alpha_deduplicator import deduplicate
-    return deduplicate(alpha_items, max_per_structure=max_per_structure)
+    return deduplicate(alpha_items, max_per_structure=max_per_structure, keep_fields_in_structure=keep_fields_in_structure)
 
 
 # ==================== 步骤 5：Alpha 聚类 ====================
@@ -439,6 +440,7 @@ def run_pipeline(
     delay: Optional[int] = None,
     templates_per_round: Optional[int] = None,
     run_self_heal_flag: bool = True,
+    run_type_repair_flag: bool = True,
     steps: Optional[List[str]] = None,
     template_mode: str = "default",
     templates_path: Optional[str] = None,
@@ -477,7 +479,7 @@ def run_pipeline(
 
     all_step_names = [
         "ai_analysis", "template_schedule", "alpha_generation", "dedup", "cluster",
-        "backtest", "filter", "self_heal", "save_high_quality",
+        "backtest", "type_repair", "filter", "self_heal", "save_high_quality",
     ]
     run_steps = steps if steps is not None else all_step_names
 
@@ -811,6 +813,52 @@ def run_pipeline(
         state["backtest_results"] = results
         report["backtest_success"] = len([r for r in results if r.get("success")])
 
+    # 步骤：类型错误修复
+    if "type_repair" in run_steps and run_type_repair_flag:
+        type_report_path = out / "type_check_report.json"
+        if type_report_path.exists():
+            try:
+                from ai.type_error_repair import step_type_error_repair, save_type_repair_report
+                from core.type_checker import build_field_type_index
+
+                # 获取字段类型索引
+                field_index = build_field_type_index((state.get("_meta") or {}).get("field_metadata", []))
+
+                # 修复类型错误
+                repaired_items, repair_stats = step_type_error_repair(
+                    type_report_path,
+                    field_index,
+                    ai_researcher=ai_researcher,
+                )
+
+                if repaired_items:
+                    # 保存修复报告
+                    save_type_repair_report(out, repaired_items, repair_stats)
+
+                    # 批量回测修复后的 alpha
+                    print(f"\n[TypeRepair] 修复 {len(repaired_items)} 个类型错误，开始回测...")
+                    repaired_results = step_backtest(
+                        session,
+                        repaired_items,
+                        region,
+                        output_dir=str(out),
+                        universe=universe,
+                        delay=delay,
+                    )
+
+                    # 合并结果
+                    state["repaired_results"] = repaired_results
+                    state["backtest_results"] = (state["backtest_results"] or []) + repaired_results
+                    report["type_repair_total"] = repair_stats.get("total", 0)
+                    report["type_repair_auto_fixed"] = repair_stats.get("auto_fixed", 0)
+                    report["type_repair_ai_fixed"] = repair_stats.get("ai_fixed", 0)
+                    report["type_repair_success"] = len([r for r in repaired_results if r.get("success")])
+                    report["backtest_success"] = len([r for r in state["backtest_results"] if r.get("success")])
+
+                    print(f"[TypeRepair] 修复回测完成: {report['type_repair_success']}/{len(repaired_items)} 成功")
+            except Exception as e:
+                logger.warning(f"类型错误修复步骤失败: {e}")
+
     if "filter" in run_steps:
         try:
             from config.settings import MIN_SHARPE, MIN_FITNESS, MAX_TURNOVER
@@ -899,6 +947,10 @@ def _write_report(output_dir: Path, report: Dict[str, Any], state: Dict[str, Any
         "after_dedup": report.get("after_dedup", 0),
         "clusters": report.get("clusters", 0),
         "backtest_success": report.get("backtest_success", 0),
+        "type_repair_total": report.get("type_repair_total", 0),
+        "type_repair_auto_fixed": report.get("type_repair_auto_fixed", 0),
+        "type_repair_ai_fixed": report.get("type_repair_ai_fixed", 0),
+        "type_repair_success": report.get("type_repair_success", 0),
         "region": state.get("region"),
         "dataset_ids": state.get("dataset_ids"),
         "output_dir": state.get("output_dir"),

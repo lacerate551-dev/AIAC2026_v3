@@ -1,0 +1,212 @@
+[
+  {
+    "name": "technical_momentum",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "技术指标动量：指标变化方向",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "technical_zscore",
+    "expression": "rank(ts_zscore({field}, {window}))",
+    "description": "技术指标历史Z-score，识别异常值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_*"},
+    "operators": ["rank", "ts_zscore"],
+    "category": "time_series"
+  },
+  {
+    "name": "technical_rank",
+    "expression": "rank({field})",
+    "description": "技术指标截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "technical_decay",
+    "expression": "rank(ts_decay_linear({field}, {window}))",
+    "description": "衰减加权技术指标，近期数据权重更高",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_*"},
+    "operators": ["rank", "ts_decay_linear"],
+    "category": "time_series"
+  },
+  {
+    "name": "technical_reversal",
+    "expression": "rank(-ts_delta({field}, {window}))",
+    "description": "技术指标反转：变化的反向信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_*"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "technical_ts_rank",
+    "expression": "rank(ts_rank({field}, {window}))",
+    "description": "技术指标时序排名的截面排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_*"},
+    "operators": ["rank", "ts_rank"],
+    "category": "time_series"
+  },
+  {
+    "name": "bb_position",
+    "expression": "rank({field})",
+    "description": "布林带位置：价格在布林带中的相对位置",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_bb"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "bb_squeeze",
+    "expression": "rank(-ts_delta({field}, {window}))",
+    "description": "布林带收窄信号：波动率压缩后可能突破",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_bb"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "fmc_signal",
+    "expression": "rank({field})",
+    "description": "资金流量指标信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_fmc"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "fmc_momentum",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "资金流量变化趋势",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_fmc"},
+    "operators": ["rank", "ts_delta"],
+    "category": "time_series"
+  },
+  {
+    "name": "adx_trend_strength",
+    "expression": "rank({field})",
+    "description": "ADX趋势强度信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*average_directional_index*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "atr_volatility",
+    "expression": "rank({field})",
+    "description": "ATR波动率信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*average_true_range*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "chaikin_flow",
+    "expression": "rank({field})",
+    "description": "Chaikin资金流量信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "chaikin_money_flow*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "ema_cross_signal",
+    "expression": "rank({short_field} - {long_field})",
+    "description": "EMA交叉信号：短期-长期差异",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"short_field": "*ema*10d*", "long_field": "*ema*20d*"},
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "williams_overbought",
+    "expression": "rank(-{field})",
+    "description": "Williams %R 超买超卖信号（负值处理）",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "williams_percent_r*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "aroon_trend",
+    "expression": "rank({field})",
+    "description": "Aroon指标趋势信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*aroon*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "volume_oscillator",
+    "expression": "rank({field})",
+    "description": "成交量震荡指标信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "*volume_oscillator*"},
+    "operators": ["rank"],
+    "category": "cross_section"
+  },
+  {
+    "name": "technical_std_dev",
+    "expression": "rank(ts_std_dev({field}, {window}))",
+    "description": "技术指标波动率：稳定性信号",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "mdl135_d01_*"},
+    "operators": ["rank", "ts_std_dev"],
+    "category": "time_series"
+  },
+  {
+    "name": "multi_window_compare",
+    "expression": "rank({field1} - {field2})",
+    "description": "多窗口对比：短期与长期指标差异",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "*_10d", "field2": "*_20d"},
+    "operators": ["rank"],
+    "category": "pair"
+  },
+  {
+    "name": "technical_correlation",
+    "expression": "rank(ts_corr({field1}, {field2}, {window}))",
+    "description": "两技术指标相关性信号",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "mdl135_d01_bb", "field2": "mdl135_d01_fmc"},
+    "operators": ["rank", "ts_corr"],
+    "category": "pair"
+  },
+  {
+    "name": "price_momentum_divergence",
+    "expression": "rank(ts_delta({price_field}, {window}) - ts_delta({indicator_field}, {window}))",
+    "description": "价格与技术指标背离信号",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"price_field": "mdl135_d01_*", "indicator_field": "mdl135_d01_fmc"},
+    "operators": ["rank", "ts_delta"],
+    "category": "pair"
+  }
+]

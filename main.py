@@ -2474,6 +2474,7 @@ def cli_mode():
     pipe_parser.add_argument("--datasets", "-d", required=True, help="数据集 ID，逗号分隔（如 pv1 或 pv1,analyst15）")
     pipe_parser.add_argument("--output-dir", "-o", default=None, help="输出目录（默认 research/alpha_factory_<timestamp>）")
     pipe_parser.add_argument("--no-self-heal", action="store_true", help="不执行错误自愈")
+    pipe_parser.add_argument("--no-type-repair", action="store_true", help="不执行类型错误修复")
     pipe_parser.add_argument("--resume", action="store_true", help="从已有输出目录恢复回测进度")
     pipe_parser.add_argument("--template-mode", choices=["default", "specialized"], default="default",
                              help="模板模式: default(通用模板) 或 specialized(针对性模板，按数据集自动查找)")
@@ -2533,7 +2534,8 @@ def cli_mode():
 
         state = run_pipeline(
             session, args.region.upper(), dataset_ids, DataManager,
-            output_dir=out, run_self_heal_flag=not args.no_self_heal, steps=None,
+            output_dir=out, run_self_heal_flag=not args.no_self_heal,
+            run_type_repair_flag=not args.no_type_repair, steps=None,
             template_mode=args.template_mode,
             templates_path=args.templates,
             resume=args.resume,

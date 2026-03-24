@@ -1,0 +1,272 @@
+[
+  {
+    "name": "vector_momentum_rank",
+    "expression": "rank(vec_avg({field}))",
+    "description": "VECTOR类型：预期动量排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_sales_4wk_up"},
+    "operators": ["rank", "vec_avg"],
+    "category": "earnings_momentum"
+  },
+  {
+    "name": "vector_momentum_ts_rank",
+    "expression": "ts_rank(vec_avg({field}), {window})",
+    "description": "VECTOR类型：预期动量时间序列排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_roe_4wk_up"},
+    "operators": ["ts_rank", "vec_avg"],
+    "category": "earnings_momentum"
+  },
+  {
+    "name": "vector_momentum_diff",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "VECTOR类型：预期上调下调差值",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "anl44_best_roe_4wk_up", "field2": "anl44_best_roe_4wk_dn"},
+    "operators": ["rank", "vec_avg"],
+    "category": "earnings_momentum"
+  },
+  {
+    "name": "vector_momentum_delta",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "VECTOR类型：预期动量变化",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_eps_4wk_up"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "earnings_momentum"
+  },
+  {
+    "name": "vector_valuation_rank",
+    "expression": "rank(vec_avg({field}))",
+    "description": "VECTOR类型：估值排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_pe_ratio"},
+    "operators": ["rank", "vec_avg"],
+    "category": "valuation"
+  },
+  {
+    "name": "vector_valuation_neg_rank",
+    "expression": "-rank(vec_avg({field}))",
+    "description": "VECTOR类型：低估值排名（PE反转）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_pe_ratio"},
+    "operators": ["rank", "vec_avg"],
+    "category": "valuation"
+  },
+  {
+    "name": "vector_valuation_ts_mean",
+    "expression": "rank(ts_mean(vec_avg({field}), {window}))",
+    "description": "VECTOR类型：估值时间序列均值",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_roe"},
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "valuation"
+  },
+  {
+    "name": "vector_valuation_ts_delta",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "VECTOR类型：估值变化",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_ebit_to_sales"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "valuation"
+  },
+  {
+    "name": "vector_valuation_ts_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "VECTOR类型：估值标准化",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_px_bps_ratio"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "valuation"
+  },
+  {
+    "name": "matrix_expectation_diff",
+    "expression": "rank({field1}) - rank({field2})",
+    "description": "MATRIX类型：当年vs下年预期差",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl44_bps_best_eeps_cur_yr", "field2": "anl44_bps_best_eeps_nxt_yr"},
+    "operators": ["rank"],
+    "category": "valuation_gap"
+  },
+  {
+    "name": "matrix_expectation_ts_zscore",
+    "expression": "rank(ts_zscore({field1} - {field2}, {window}))",
+    "description": "MATRIX类型：预期差时间序列标准化",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl44_dps_best_eeps_nxt_yr", "field2": "anl44_dps_best_eeps_cur_yr"},
+    "operators": ["rank", "ts_zscore"],
+    "category": "valuation_gap"
+  },
+  {
+    "name": "matrix_expectation_group_rank",
+    "expression": "group_rank({field1} - {field2}, industry)",
+    "description": "MATRIX类型：行业内预期差异排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl44_roe_best_eeps_cur_yr", "field2": "anl44_roe_best_eeps_nxt_yr"},
+    "operators": ["group_rank"],
+    "category": "valuation_gap"
+  },
+  {
+    "name": "matrix_profitability_rank",
+    "expression": "rank({field})",
+    "description": "MATRIX类型：盈利能力排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_ebitda_best_cur_fiscal_semi_year_period"},
+    "operators": ["rank"],
+    "category": "profitability"
+  },
+  {
+    "name": "matrix_profitability_ts_delta",
+    "expression": "rank(ts_delta({field}, {window}))",
+    "description": "MATRIX类型：盈利能力变化",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_pretaxprofit_best_cur_fiscal_qtr_period"},
+    "operators": ["rank", "ts_delta"],
+    "category": "profitability"
+  },
+  {
+    "name": "matrix_profitability_group_rank",
+    "expression": "group_rank({field}, industry)",
+    "description": "MATRIX类型：行业内盈利能力排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_sales_best_cur_fiscal_year_period"},
+    "operators": ["group_rank"],
+    "category": "profitability"
+  },
+  {
+    "name": "matrix_profitability_ts_mean",
+    "expression": "rank(ts_mean({field}, {window}))",
+    "description": "MATRIX类型：盈利能力均值",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_roe_best_cur_fiscal_semi_year_period"},
+    "operators": ["rank", "ts_mean"],
+    "category": "profitability"
+  },
+  {
+    "name": "matrix_profitability_combo",
+    "expression": "rank({field1}) + rank({field2}) - rank({field3})",
+    "description": "MATRIX类型：多维度盈利能力综合",
+    "fields_required": 3,
+    "field_types": [["vector"], ["vector"], ["vector"]],
+    "field_hints": {"field1": "anl44_ebitda_best_cur_fiscal_semi_year_period", "field2": "anl44_roe_best_cur_fiscal_semi_year_period", "field3": "anl44_epsr_best_cur_fiscal_year_period"},
+    "operators": ["rank"],
+    "category": "profitability"
+  },
+  {
+    "name": "matrix_dividend_rank",
+    "expression": "rank({field})",
+    "description": "MATRIX类型：股息预期排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_dps_best_eeps_nxt_yr"},
+    "operators": ["rank"],
+    "category": "dividend"
+  },
+  {
+    "name": "matrix_dividend_ts_rank",
+    "expression": "rank(ts_rank({field1} - {field2}, {window}))",
+    "description": "MATRIX类型：股息预期变化时间序列排名",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl44_dps_best_eeps_nxt_yr", "field2": "anl44_dps_best_eeps_cur_yr"},
+    "operators": ["rank", "ts_rank"],
+    "category": "dividend"
+  },
+  {
+    "name": "matrix_asset_value_rank",
+    "expression": "rank({field})",
+    "description": "MATRIX类型：资产价值排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_nav_best_eeps_cur_yr"},
+    "operators": ["rank"],
+    "category": "valuation"
+  },
+  {
+    "name": "matrix_roa_rank",
+    "expression": "rank({field})",
+    "description": "MATRIX类型：ROA排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_roa_best_eeps_cur_yr"},
+    "operators": ["rank"],
+    "category": "profitability"
+  },
+  {
+    "name": "matrix_operating_profit_rank",
+    "expression": "rank({field})",
+    "description": "MATRIX类型：营业利润排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_operatingprofit_best_crncy_iso"},
+    "operators": ["rank"],
+    "category": "profitability"
+  },
+  {
+    "name": "matrix_cash_flow_rank",
+    "expression": "rank({field})",
+    "description": "MATRIX类型：现金流排名",
+    "fields_required": 1,
+    "field_types": [["vector"]],
+    "field_hints": {"field": "anl44_cfps_best_eeps_nxt_yr"},
+    "operators": ["rank"],
+    "category": "cash_quality"
+  },
+  {
+    "name": "matrix_ts_corr",
+    "expression": "rank(ts_corr({field1}, {field2}, {window}))",
+    "description": "MATRIX类型：双字段相关性",
+    "fields_required": 2,
+    "field_types": [["vector"], ["vector"]],
+    "field_hints": {"field1": "anl44_ebitda_best_cur_fiscal_semi_year_period", "field2": "anl44_roe_best_cur_fiscal_semi_year_period"},
+    "operators": ["rank", "ts_corr"],
+    "category": "pair"
+  },
+  {
+    "name": "vector_gaap_momentum_rank",
+    "expression": "rank(vec_avg({field}))",
+    "description": "VECTOR类型：GAAP预期动量排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_gaap_best_eps_gaap_4wk_up"},
+    "operators": ["rank", "vec_avg"],
+    "category": "earnings_momentum"
+  },
+  {
+    "name": "vector_gaap_net_dn_rank",
+    "expression": "-rank(vec_avg({field}))",
+    "description": "VECTOR类型：净利润下调反转",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_gaap_best_net_gaap_4wk_dn"},
+    "operators": ["rank", "vec_avg"],
+    "category": "earnings_momentum"
+  },
+  {
+    "name": "vector_sum_rank",
+    "expression": "rank(vec_sum({field}))",
+    "description": "VECTOR类型：向量求和排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "anl44_best_sales_4wk_up"},
+    "operators": ["rank", "vec_sum"],
+    "category": "earnings_momentum"
+  }
+]

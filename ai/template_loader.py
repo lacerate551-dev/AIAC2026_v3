@@ -363,17 +363,32 @@ def load_mixed_templates(
     )
 
     # 如果是针对性模式且模板数量不足，从默认模板补充
+    # 但需要检查针对性模板的字段类型兼容性
     if template_mode == "specialized" and len(base_templates) < min_templates:
-        default_templates, _ = load_templates("default")
-        # 去重：排除已存在的表达式
-        existing_exprs = {t.get("expression") for t in base_templates}
-        supplement = [t for t in default_templates if t.get("expression") not in existing_exprs]
-        # 补充到 min_templates
-        needed = min_templates - len(base_templates)
-        if needed > 0 and supplement:
-            base_templates = base_templates + supplement[:needed]
-            source = f"{source}+default({needed})"
-            logger.info(f"针对性模板不足 ({len(base_templates) - needed} 个)，从默认模板补充 {needed} 个")
+        # 检查针对性模板是否全部是 event 类型专用
+        all_event_only = all(
+            _template_supports_type(t, "event") and not _template_supports_type(t, "vector")
+            for t in base_templates
+            if t.get("field_types")
+        )
+
+        if all_event_only:
+            # 如果针对性模板全部是 event 类型专用，不补充默认模板
+            # 因为默认模板不支持 event 类型字段
+            logger.info(f"针对性模板全部为 event 类型专用，不补充默认模板")
+            source = f"{source}(event_only)"
+        else:
+            # 混合类型或无类型约束，可以补充
+            default_templates, _ = load_templates("default")
+            # 去重：排除已存在的表达式
+            existing_exprs = {t.get("expression") for t in base_templates}
+            supplement = [t for t in default_templates if t.get("expression") not in existing_exprs]
+            # 补充到 min_templates
+            needed = min_templates - len(base_templates)
+            if needed > 0 and supplement:
+                base_templates = base_templates + supplement[:needed]
+                source = f"{source}+default({needed})"
+                logger.info(f"针对性模板不足 ({len(base_templates) - needed} 个)，从默认模板补充 {needed} 个")
 
     if not include_vector:
         return base_templates, source

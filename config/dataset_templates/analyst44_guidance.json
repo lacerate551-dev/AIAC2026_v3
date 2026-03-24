@@ -1,0 +1,92 @@
+{
+  "dataset_id": "analyst44",
+  "dataset_name": "Integrated Broker Estimates",
+  "description": "整合券商预估数据，包含分析师共识估值、预期修正、GAAP/非GAAP对比等。数据集同时包含 VECTOR 和 MATRIX 两种类型字段。",
+  "field_types": {
+    "VECTOR": 649,
+    "MATRIX": 148
+  },
+  "field_type_note": "VECTOR 类型字段（API 返回 type=VECTOR）需要 vec_avg 转换后使用；MATRIX 类型字段（API 返回 type=MATRIX）可直接使用 rank/ts_* 操作符。",
+
+  "research_directions": [
+    {
+      "name": "盈利预期动量",
+      "description": "分析师预期修正动量。4wk_up/dn 为过去4周上调/下调预期数量。",
+      "field_patterns": ["anl44_best_*_4wk_up", "anl44_best_*_4wk_dn", "anl44_gaap_best_*_4wk_up"],
+      "field_type": "VECTOR",
+      "example_template": "rank(vec_avg({field}))",
+      "suggested_operators": ["rank", "vec_avg", "ts_delta"]
+    },
+    {
+      "name": "估值共识",
+      "description": "分析师估值共识。best_pe_ratio、best_roe 等单值估值指标。",
+      "field_patterns": ["anl44_best_pe_ratio", "anl44_best_roe", "anl44_best_ebit_to_sales"],
+      "field_type": "VECTOR",
+      "example_template": "rank(vec_avg({field}))",
+      "suggested_operators": ["rank", "vec_avg"]
+    },
+    {
+      "name": "预期差",
+      "description": "当年vs下年预期差异。eeps_cur_yr/nxt_yr 字段为 MATRIX 类型。",
+      "field_patterns": ["anl44_*_best_eeps_cur_yr", "anl44_*_best_eeps_nxt_yr"],
+      "field_type": "MATRIX",
+      "example_template": "rank({field1}) - rank({field2})",
+      "suggested_operators": ["rank", "ts_zscore", "group_rank"]
+    },
+    {
+      "name": "财年度盈利",
+      "description": "财年度盈利指标。fiscal_qtr_period/fiscal_year_period 等为 MATRIX 类型。",
+      "field_patterns": ["anl44_*_best_cur_fiscal_*", "anl44_*_best_crncy_iso"],
+      "field_type": "MATRIX",
+      "example_template": "rank({field})",
+      "suggested_operators": ["rank", "group_rank", "ts_mean"]
+    }
+  ],
+
+  "priority_fields_vector": [
+    {"field_id": "anl44_best_pe_ratio", "coverage": 0.93, "alpha_count": 356, "reason": "PE估值，Alpha数量最高，需要 vec_avg"},
+    {"field_id": "anl44_best_sales_4wk_up", "coverage": 0.90, "alpha_count": 65, "reason": "销售预期上调，动量核心"},
+    {"field_id": "anl44_best_px_bps_ratio", "coverage": 0.86, "alpha_count": 54, "reason": "PB估值"},
+    {"field_id": "anl44_best_ebit_to_sales", "coverage": 0.88, "alpha_count": 50, "reason": "EBIT/销售额"},
+    {"field_id": "anl44_best_eps_lo", "coverage": 0.88, "alpha_count": 46, "reason": "EPS最低预期"},
+    {"field_id": "anl44_best_roe", "coverage": 0.79, "alpha_count": 41, "reason": "ROE估值"},
+    {"field_id": "anl44_gaap_best_eps_gaap_4wk_up", "coverage": 0.90, "alpha_count": 40, "reason": "GAAP EPS上调"},
+    {"field_id": "anl44_gaap_best_eps", "coverage": 0.93, "alpha_count": 38, "reason": "GAAP EPS"},
+    {"field_id": "anl44_gaap_best_net_gaap_4wk_dn", "coverage": 0.89, "alpha_count": 37, "reason": "净利润下调"},
+    {"field_id": "anl44_best_roe_4wk_up", "coverage": 0.70, "alpha_count": 18, "reason": "ROE预期上调"}
+  ],
+
+  "priority_fields_matrix": [
+    {"field_id": "anl44_bps_best_eeps_cur_yr", "coverage": 0.93, "alpha_count": 344, "reason": "BPS当年预期，直接用 rank"},
+    {"field_id": "anl44_pretaxprofit_best_cur_fiscal_qtr_period", "coverage": 0.99, "alpha_count": 328, "reason": "税前利润季度"},
+    {"field_id": "anl44_dps_best_eeps_nxt_yr", "coverage": 0.98, "alpha_count": 292, "reason": "股息下年预期"},
+    {"field_id": "anl44_ebitda_best_cur_fiscal_semi_year_period", "coverage": 0.99, "alpha_count": 199, "reason": "EBITDA半年度"},
+    {"field_id": "anl44_bps_best_crncy_iso", "coverage": 1.00, "alpha_count": 198, "reason": "BPS货币"},
+    {"field_id": "anl44_epsr_best_cur_fiscal_year_period", "coverage": 0.99, "alpha_count": 145, "reason": "EPS比率年度"},
+    {"field_id": "anl44_sales_best_cur_fiscal_year_period", "coverage": 0.99, "alpha_count": 138, "reason": "销售年度"},
+    {"field_id": "anl44_roe_best_eeps_cur_yr", "coverage": 0.93, "alpha_count": 132, "reason": "ROE当年预期"},
+    {"field_id": "anl44_roa_best_eeps_cur_yr", "coverage": 0.93, "alpha_count": 91, "reason": "ROA当年预期"},
+    {"field_id": "anl44_nav_best_eeps_cur_yr", "coverage": 0.93, "alpha_count": 90, "reason": "NAV当年预期"}
+  ],
+
+  "field_pairs_vector": [
+    {"field1": "anl44_best_roe_4wk_up", "field2": "anl44_best_roe_4wk_dn", "logic": "ROE预期净上调", "template": "rank(vec_avg({field1}) - vec_avg({field2}))"},
+    {"field1": "anl44_best_sales_4wk_up", "field2": "anl44_gaap_best_net_gaap_4wk_dn", "logic": "销售上调vs净利下调", "template": "rank(vec_avg({field1})) - rank(vec_avg({field2}))"}
+  ],
+
+  "field_pairs_matrix": [
+    {"field1": "anl44_bps_best_eeps_cur_yr", "field2": "anl44_bps_best_eeps_nxt_yr", "logic": "BPS预期差", "template": "rank({field1}) - rank({field2})"},
+    {"field1": "anl44_dps_best_eeps_nxt_yr", "field2": "anl44_dps_best_eeps_cur_yr", "logic": "股息预期变化", "template": "rank({field1} - {field2})"},
+    {"field1": "anl44_roe_best_eeps_cur_yr", "field2": "anl44_roe_best_eeps_nxt_yr", "logic": "ROE预期差", "template": "rank({field1}) - rank({field2})"}
+  ],
+
+  "guidance_prompt": "**Analyst44 数据集研究方向指引（重要）：**\n\n此数据集同时包含 VECTOR 和 MATRIX 两种类型字段，处理方式不同：\n\n**类型映射（BRAIN 平台）：**\n- VECTOR 类型（API type=VECTOR）→ normalized_type=event → 需要 vec_avg 转换\n- MATRIX 类型（API type=MATRIX）→ normalized_type=vector → 可直接用 rank/ts_*\n\n**VECTOR 字段（需要 vec_avg）：**\n- 字段模式：best_pe_ratio, best_roe, *_4wk_up, *_4wk_dn\n- 推荐：anl44_best_pe_ratio (356 alpha)、anl44_best_sales_4wk_up (65 alpha)\n- 模板：rank(vec_avg({field}))\n\n**MATRIX 字段（直接用）：**\n- 字段模式：*_eeps_cur_yr, *_eeps_nxt_yr, *_fiscal_*_period, *_crncy_iso\n- 推荐：anl44_bps_best_eeps_cur_yr (344 alpha)、anl44_dps_best_eeps_nxt_yr (292 alpha)\n- 模板：rank({field}) 或 rank({field1}) - rank({field2})",
+
+  "recommended_backtest_params": {
+    "window": [5, 10, 20],
+    "decay": [5, 10, 15],
+    "truncation": [0.01, 0.05, 0.08],
+    "neutralization": ["MARKET", "INDUSTRY", "SECTOR"],
+    "rationale": "分析师预期数据变化较快但相对稳定，decay使用中等值（5-15）"
+  }
+}

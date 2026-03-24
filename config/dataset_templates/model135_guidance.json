@@ -1,0 +1,74 @@
+{
+  "dataset_id": "model135",
+  "dataset_name": "Alternative technical factor models",
+  "description": "技术分析因子模型数据集，包含273个经典技术指标，涵盖趋势、动量、波动率、成交量等多个维度。所有字段均为MATRIX类型，可直接使用rank/ts_*操作符。",
+  "research_directions": [
+    {
+      "name": "趋势跟踪信号",
+      "description": "利用ADX、Aroon等趋势指标识别强势趋势股票，跟随趋势获利。",
+      "field_patterns": ["*average_directional_index*", "*aroon*"],
+      "example_fields": ["five_day_average_directional_index", "ten_day_aroon_oscillator"],
+      "suggested_operators": ["rank", "ts_delta", "ts_zscore"],
+      "alpha_logic": "高ADX值表示强趋势，Aroon振荡器正值为上升趋势。结合动量因子构建趋势跟踪策略。"
+    },
+    {
+      "name": "均值回归信号",
+      "description": "利用布林带、Williams %R等识别超买超卖区域，捕捉均值回归机会。",
+      "field_patterns": ["mdl135_d01_bb", "williams_percent_r*"],
+      "example_fields": ["mdl135_d01_bb", "williams_percent_r_10d"],
+      "suggested_operators": ["rank", "ts_zscore", "-ts_delta"],
+      "alpha_logic": "布林带位置接近上轨或Williams %R接近-20为超买，反之超卖。构建反转因子。"
+    },
+    {
+      "name": "资金流向信号",
+      "description": "利用Chaikin、FMC等资金流量指标追踪聪明钱流向。",
+      "field_patterns": ["chaikin_money_flow*", "mdl135_d01_fmc"],
+      "example_fields": ["chaikin_money_flow_10d", "mdl135_d01_fmc"],
+      "suggested_operators": ["rank", "ts_delta", "ts_decay_linear"],
+      "alpha_logic": "正资金流入预示上涨压力，持续流入更可信。用ts_decay_linear给近期数据更高权重。"
+    },
+    {
+      "name": "波动率信号",
+      "description": "利用ATR、布林带宽度等波动率指标，识别低波动率股票或波动率突破。",
+      "field_patterns": ["*average_true_range*", "mdl135_d01_bb"],
+      "example_fields": ["five_day_average_true_range", "mdl135_d01_bb"],
+      "suggested_operators": ["rank", "ts_delta", "ts_std_dev"],
+      "alpha_logic": "低波动率股票往往有更高风险溢价。布林带收窄（低波动）后可能有大行情。"
+    },
+    {
+      "name": "多周期共振",
+      "description": "比较不同时间窗口的技术指标，寻找多周期信号共振点。",
+      "field_patterns": ["*_10d", "*_20d", "*_3d", "*_5d"],
+      "example_fields": ["chaikin_money_flow_10d", "chaikin_money_flow_20d"],
+      "suggested_operators": ["rank", "ts_delta", "-"],
+      "alpha_logic": "短期和长期指标同向时信号更强。如10日和20日Chaikin同正时买入信号更可靠。"
+    },
+    {
+      "name": "成交量确认",
+      "description": "利用成交量相关指标确认价格趋势的有效性。",
+      "field_patterns": ["*volume_oscillator*", "*on_balance_volume*"],
+      "example_fields": ["percentage_volume_oscillator_2d", "three_day_on_balance_volume"],
+      "suggested_operators": ["rank", "ts_delta"],
+      "alpha_logic": "价格上涨伴随成交量放大更可信。OBV上升确认上涨趋势，背离则预警反转。"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "mdl135_d01_bb", "description": "布林带位置，-1到1，超买超卖信号"},
+    {"field_id": "mdl135_d01_fmc", "description": "资金流量指标，追踪聪明钱"},
+    {"field_id": "five_day_average_directional_index", "description": "5日ADX趋势强度"},
+    {"field_id": "ten_day_average_directional_index", "description": "10日ADX趋势强度"},
+    {"field_id": "chaikin_money_flow_10d", "description": "10日Chaikin资金流量"},
+    {"field_id": "chaikin_money_flow_20d", "description": "20日Chaikin资金流量"},
+    {"field_id": "williams_percent_r_10d", "description": "10日Williams %R超买超卖"},
+    {"field_id": "ten_day_aroon_oscillator", "description": "10日Aroon振荡器趋势"},
+    {"field_id": "five_day_average_true_range", "description": "5日ATR波动率"},
+    {"field_id": "percentage_volume_oscillator_2d", "description": "成交量震荡"}
+  ],
+  "field_pairs": [
+    {"field1": "chaikin_money_flow_10d", "field2": "chaikin_money_flow_20d", "logic": "短期vs长期资金流"},
+    {"field1": "mdl135_d01_bb", "field2": "mdl135_d01_fmc", "logic": "布林带位置与资金流组合"},
+    {"field1": "five_day_average_directional_index", "field2": "ten_day_average_directional_index", "logic": "短期vs长期趋势强度"},
+    {"field1": "williams_percent_r_10d", "field2": "mdl135_d01_bb", "logic": "双重超买超卖确认"}
+  ],
+  "guidance_prompt": "**model135 技术分析因子模型数据集**\n\n**特点：**\n- 273个技术指标字段，全部为MATRIX类型\n- 可直接使用 rank/ts_*/zscore 等操作符，无需vec_avg转换\n\n**关键指标分类：**\n\n**趋势指标：**\n- average_directional_index (ADX): 趋势强度，>25为强趋势\n- aroon_oscillator: 趋势方向，正值上升趋势\n\n**超买超卖：**\n- mdl135_d01_bb: 布林带位置，接近1超买，接近-1超卖\n- williams_percent_r: Williams %R，接近-20超买，接近-80超卖\n\n**资金流量：**\n- mdl135_d01_fmc: 资金流量指标\n- chaikin_money_flow: Chaikin资金流量，正值资金流入\n\n**波动率：**\n- average_true_range (ATR): 真实波动范围\n- mdl135_d01_bb变化: 布林带宽度变化\n\n**成交量：**\n- percentage_volume_oscillator: 成交量震荡\n- on_balance_volume: 能量潮指标\n\n**推荐策略：**\n1. 趋势跟踪: rank(ADX) * rank(ts_delta(Chaikin, 5))\n2. 均值回归: rank(-bb) when ts_zscore(bb, 20) > 2\n3. 多周期共振: sign(CMF_10d) == sign(CMF_20d)\n4. 波动率突破: ts_delta(ATR, 5) 大幅增加后趋势延续"
+}

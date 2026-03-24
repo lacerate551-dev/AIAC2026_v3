@@ -18,45 +18,68 @@ def _get_operator_set(expression: str) -> set:
     return set(re.findall(r"([a-z_][a-z0-9_]*)\s*\(", expression))
 
 
-def normalize_expression_structure(expression: str) -> str:
+def normalize_expression_structure(expression: str, keep_fields: bool = True) -> str:
     """
-    将表达式标准化为结构形式：字段名 -> {field}/{field2}/...，数字 -> {window}，便于判断同一结构。
+    将表达式标准化为结构形式。
+
+    Args:
+        expression: 原始表达式
+        keep_fields: 是否保留字段名。True则不同字段算不同结构，False则忽略字段差异
 
     例如：
-        rank(ts_mean(close,5))   -> rank(ts_mean({field},{window}))
-        rank(ts_mean(volume,10))  -> rank(ts_mean({field},{window}))
-    两者结构相同，视为同一类型。
+        keep_fields=True:
+            rank(ts_mean(nws17_d1_ssc,5))   -> rank(ts_mean(nws17_d1_ssc,{window}))
+            rank(ts_mean(nws17_d1_qmb,10))  -> rank(ts_mean(nws17_d1_qmb,{window}))
+            两者结构不同（字段不同）
+
+        keep_fields=False:
+            rank(ts_mean(nws17_d1_ssc,5))   -> rank(ts_mean({field},{window}))
+            rank(ts_mean(nws17_d1_qmb,10))  -> rank(ts_mean({field},{window}))
+            两者结构相同
     """
     if not expression or not expression.strip():
         return ""
     expr = expression.strip()
     operators = _get_operator_set(expr)
-    field_seen: Dict[str, str] = {}
-    field_counter = [0]
 
-    def replace_token(match: re.Match) -> str:
-        s = match.group(0)
-        # 数字字面量 -> {window}
-        if re.match(r"^\d+\.?\d*$|^\.\d+$", s):
-            return "{window}"
-        if s in operators or s in RESERVED_WORDS:
+    if keep_fields:
+        # 保留字段名，只替换数字为 {window}
+        def replace_numbers(match: re.Match) -> str:
+            s = match.group(0)
+            if re.match(r"^\d+\.?\d*$|^\.\d+$", s):
+                return "{window}"
+            if s in operators or s in RESERVED_WORDS:
+                return s
             return s
-        if s not in field_seen:
-            field_counter[0] += 1
-            if field_counter[0] == 1:
-                field_seen[s] = "{field}"
-            else:
-                field_seen[s] = f"{{field{field_counter[0]}}}"
-        return field_seen[s]
+        pattern = r"[a-z_][a-z0-9_]*|\d+\.?\d*|\.\d+"
+        return re.sub(pattern, replace_numbers, expr)
+    else:
+        # 原有逻辑：字段也替换为 {field}
+        field_seen: Dict[str, str] = {}
+        field_counter = [0]
 
-    # 匹配标识符或数字（不匹配已有占位符 {field} 等）
-    pattern = r"[a-z_][a-z0-9_]*|\d+\.?\d*|\.\d+"
-    return re.sub(pattern, replace_token, expr)
+        def replace_token(match: re.Match) -> str:
+            s = match.group(0)
+            if re.match(r"^\d+\.?\d*$|^\.\d+$", s):
+                return "{window}"
+            if s in operators or s in RESERVED_WORDS:
+                return s
+            if s not in field_seen:
+                field_counter[0] += 1
+                if field_counter[0] == 1:
+                    field_seen[s] = "{field}"
+                else:
+                    field_seen[s] = f"{{field{field_counter[0]}}}"
+            return field_seen[s]
+
+        pattern = r"[a-z_][a-z0-9_]*|\d+\.?\d*|\.\d+"
+        return re.sub(pattern, replace_token, expr)
 
 
 def deduplicate(
     alpha_items: List[Dict[str, Any]],
     max_per_structure: int = 3,
+    keep_fields_in_structure: bool = True,
 ) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
     """
     按结构去重：每种结构只保留至多 max_per_structure 个参数组合。
@@ -64,6 +87,7 @@ def deduplicate(
     Args:
         alpha_items: 生成的 Alpha 列表，每项至少含 "expression"，可含 decay/truncation/neutralization 等
         max_per_structure: 每种结构保留的最大数量，默认 3
+        keep_fields_in_structure: 是否将不同字段视为不同结构。True则保留更多字段多样性
 
     Returns:
         (deduped_list, stats)
@@ -77,7 +101,7 @@ def deduplicate(
     groups: Dict[str, List[Dict[str, Any]]] = {}
     for item in alpha_items:
         expr = item.get("expression") or ""
-        structure = normalize_expression_structure(expr)
+        structure = normalize_expression_structure(expr, keep_fields=keep_fields_in_structure)
         if structure not in groups:
             groups[structure] = []
         groups[structure].append(item)

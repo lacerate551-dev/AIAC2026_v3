@@ -1,0 +1,392 @@
+[
+  {
+    "name": "news_sentiment_rank",
+    "expression": "rank(vec_avg({field}))",
+    "description": "新闻情感评分截面排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "news_sentiment_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "新闻情感动量：情感评分变化方向",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "news_sentiment_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "新闻情感历史Z-score，识别异常情感",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "news_sentiment_decay",
+    "expression": "rank(ts_decay_linear(vec_avg({field}), {window}))",
+    "description": "衰减加权情感评分，近期新闻权重更高",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_decay_linear", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "news_sentiment_reversal",
+    "expression": "rank(-ts_delta(vec_avg({field}), {window}))",
+    "description": "新闻情感反转：情感变化的反向信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "nip_impact_score",
+    "expression": "rank(vec_avg({field}))",
+    "description": "NIP市场影响评分：新闻对市场2小时内的影响程度",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_nip"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "nip_impact_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "NIP影响评分变化：市场影响程度的变化趋势",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_nip"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "nip_sentiment_combined",
+    "expression": "rank(vec_avg({sentiment_field}) * (1 + abs(vec_avg({impact_field}))))",
+    "description": "情感与市场影响组合：高影响新闻的情感信号更强",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"sentiment_field": "nws17_d1_ssc", "impact_field": "nws17_d1_nip"},
+    "operators": ["rank", "vec_avg", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "event_novelty_signal",
+    "expression": "rank(-vec_avg({field}))",
+    "description": "事件新颖性：距离上次相似事件的天数（负号表示间隔短更重要）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_event_similarity_days"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "relevance_weighted_sentiment",
+    "expression": "rank(vec_avg({sentiment_field}) * vec_avg({relevance_field}))",
+    "description": "相关性加权的情感评分，高相关性新闻权重更大",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"sentiment_field": "nws17_d1_ssc", "relevance_field": "nws17_d1_relevance"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "high_relevance_sentiment",
+    "expression": "rank(if_else(greater(vec_avg({relevance_field}), 75), vec_avg({sentiment_field}), 0))",
+    "description": "高相关性新闻情感：仅关注相关性>75的新闻",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"sentiment_field": "nws17_d1_ssc", "relevance_field": "nws17_d1_relevance"},
+    "operators": ["rank", "vec_avg", "if_else", "greater"],
+    "category": "pair"
+  },
+  {
+    "name": "ber_analyst_rating",
+    "expression": "rank(vec_avg({field}))",
+    "description": "分析师评级变化信号：升级/降级",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ber"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "ber_rating_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "分析师评级变化趋势",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ber"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "acb_earnings_sentiment",
+    "expression": "rank(vec_avg({field}))",
+    "description": "财报发布情感（BER分类器专用于财报）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_acb"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "bee_earnings_eval",
+    "expression": "rank(vec_avg({field}))",
+    "description": "财报评估情感（BEE分类器专用于财报评估）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_bee"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "bam_corporate_action",
+    "expression": "rank(vec_avg({field}))",
+    "description": "企业行动公告情感（BCA分类器）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_bam"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "qmb_ma_sentiment",
+    "expression": "rank(vec_avg({field}))",
+    "description": "并购新闻情感（BAM分类器专用于并购）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_qmb"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "qmb_ma_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "并购新闻情感变化趋势",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_qmb"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "qep_global_equity_sentiment",
+    "expression": "rank(vec_avg({field}))",
+    "description": "全球股票情感（PEQ分类器，识别正负面词汇）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_qep"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "qep_sentiment_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "全球股票情感异常检测",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_qep"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "qcm_composite_sentiment",
+    "expression": "rank(vec_avg({field}))",
+    "description": "综合情感评分（BMQ+BEE+BCA+ANL-CHG组合）",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_qcm"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "qcm_composite_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "综合情感变化趋势",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_qcm"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "classifier_sentiment_diff",
+    "expression": "rank(vec_avg({field1}) - vec_avg({field2}))",
+    "description": "两分类器情感差异，捕捉不同视角分歧",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "nws17_d1_acb", "field2": "nws17_d1_bee"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "classifier_alignment",
+    "expression": "rank(sign(vec_avg({field1})) * sign(vec_avg({field2})) * (abs(vec_avg({field1})) + abs(vec_avg({field2}))))",
+    "description": "分类器情感一致性：同向时信号增强",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"field1": "nws17_d1_acb", "field2": "nws17_d1_bee"},
+    "operators": ["rank", "sign", "abs", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "multi_classifier_sentiment",
+    "expression": "rank((vec_avg({field1}) + vec_avg({field2}) + vec_avg({field3})) / 3)",
+    "description": "多分类器情感平均：综合不同视角",
+    "fields_required": 3,
+    "field_types": [["event"], ["event"], ["event"]],
+    "field_hints": {"field1": "nws17_d1_acb", "field2": "nws17_d1_bee", "field3": "nws17_d1_qcm"},
+    "operators": ["rank", "vec_avg"],
+    "category": "multi"
+  },
+  {
+    "name": "news_count_signal",
+    "expression": "rank(vec_count({field}))",
+    "description": "新闻数量信号：统计有新闻的条目数",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "vec_count"],
+    "category": "cross_section"
+  },
+  {
+    "name": "news_count_momentum",
+    "expression": "rank(ts_delta(vec_count({field}), {window}))",
+    "description": "新闻数量变化：新闻关注度变化趋势",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_delta", "vec_count"],
+    "category": "time_series"
+  },
+  {
+    "name": "news_flow_intensity",
+    "expression": "rank(ts_mean(vec_count({field}), {window}))",
+    "description": "新闻流强度：滚动平均新闻数量",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_mean", "vec_count"],
+    "category": "time_series"
+  },
+  {
+    "name": "news_coverage_ratio",
+    "expression": "rank(vec_count({headline_field}) / (vec_count({sentiment_field}) + 0.01))",
+    "description": "新闻覆盖率：头条数/有情感新闻数",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"headline_field": "nws17_d1_headline", "sentiment_field": "nws17_d1_ssc"},
+    "operators": ["rank", "vec_count"],
+    "category": "pair"
+  },
+  {
+    "name": "story_event_count_signal",
+    "expression": "rank(vec_avg({field}))",
+    "description": "故事事件计数：每条新闻的实体记录数",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_rp_story_event_count"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "story_event_momentum",
+    "expression": "rank(ts_delta(vec_avg({field}), {window}))",
+    "description": "故事事件数变化趋势",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_rp_story_event_count"},
+    "operators": ["rank", "ts_delta", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "sentiment_volatility",
+    "expression": "rank(ts_std_dev(vec_avg({field}), {window}))",
+    "description": "情感评分波动率：新闻情感的稳定性",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_std_dev", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "sentiment_ts_rank",
+    "expression": "rank(ts_rank(vec_avg({field}), {window}))",
+    "description": "情感评分时序排名的截面排名",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_rank", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "sentiment_ma_crossover",
+    "expression": "rank(ts_mean(vec_avg({field}), 5) - ts_mean(vec_avg({field}), 20))",
+    "description": "短期与长期情感均线交叉信号",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_ssc"},
+    "operators": ["rank", "ts_mean", "vec_avg"],
+    "category": "complex"
+  },
+  {
+    "name": "event_sentiment_score",
+    "expression": "rank(vec_avg({field}))",
+    "description": "事件情感评分：-1到+1的粒度评分",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_event_sentiment_score"},
+    "operators": ["rank", "vec_avg"],
+    "category": "cross_section"
+  },
+  {
+    "name": "event_sentiment_zscore",
+    "expression": "rank(ts_zscore(vec_avg({field}), {window}))",
+    "description": "事件情感异常检测",
+    "fields_required": 1,
+    "field_types": [["event"]],
+    "field_hints": {"field": "nws17_d1_event_sentiment_score"},
+    "operators": ["rank", "ts_zscore", "vec_avg"],
+    "category": "time_series"
+  },
+  {
+    "name": "ma_novelty_combo",
+    "expression": "rank(vec_avg({ma_field}) * (1 / (vec_avg({novelty_field}) + 1)))",
+    "description": "并购情感与新颖性组合：新颖并购事件信号更强",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"ma_field": "nws17_d1_qmb", "novelty_field": "nws17_d1_event_similarity_days"},
+    "operators": ["rank", "vec_avg"],
+    "category": "pair"
+  },
+  {
+    "name": "earnings_nip_combo",
+    "expression": "rank(vec_avg({earnings_field}) * abs(vec_avg({nip_field})))",
+    "description": "财报情感与市场影响组合",
+    "fields_required": 2,
+    "field_types": [["event"], ["event"]],
+    "field_hints": {"earnings_field": "nws17_d1_acb", "nip_field": "nws17_d1_nip"},
+    "operators": ["rank", "vec_avg", "abs"],
+    "category": "pair"
+  },
+  {
+    "name": "sentiment_relevance_novelty",
+    "expression": "rank(vec_avg({sentiment}) * vec_avg({relevance}) / (vec_avg({novelty}) + 1))",
+    "description": "三因子组合：情感×相关性/新颖性",
+    "fields_required": 3,
+    "field_types": [["event"], ["event"], ["event"]],
+    "field_hints": {"sentiment": "nws17_d1_ssc", "relevance": "nws17_d1_relevance", "novelty": "nws17_d1_event_similarity_days"},
+    "operators": ["rank", "vec_avg"],
+    "category": "multi"
+  }
+]

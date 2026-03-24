@@ -1,0 +1,128 @@
+{
+  "dataset_id": "news17",
+  "dataset_name": "PR Edition Data",
+  "description": "RavenPack PR Edition 数据集，每日处理超过10万条新闻，提供细粒度情感评分、事件相关性、新颖性指标和市场影响预测。包含多个NLP分类器（BER/BEE/BCA/BAM/PEQ）针对不同新闻类型的专门情感分析。",
+  "research_directions": [
+    {
+      "name": "情感动量与反转",
+      "description": "利用新闻情感得分的变化趋势，捕捉情绪驱动的短期价格动量或过度反应后的反转机会。",
+      "field_patterns": ["*_ssc", "*_event_sentiment_score"],
+      "example_fields": ["nws17_d1_ssc", "nws17_d1_event_sentiment_score"],
+      "suggested_operators": ["ts_delta", "ts_zscore", "ts_rank", "rank", "vec_avg"],
+      "alpha_logic": "对情感得分用 vec_avg 转换后，计算时序变化（ts_delta）进行截面排序，或捕捉极端情感后的均值回归。"
+    },
+    {
+      "name": "市场影响预测",
+      "description": "利用NIP评分预测新闻发布后2小时内的市场影响程度，提前布局。",
+      "field_patterns": ["*_nip"],
+      "example_fields": ["nws17_d1_nip"],
+      "suggested_operators": ["ts_delta", "ts_zscore", "rank", "abs", "vec_avg"],
+      "alpha_logic": "NIP评分反映新闻对市场的影响程度。高NIP新闻的情感信号更可信，可构建情感×影响力的组合因子。"
+    },
+    {
+      "name": "事件新颖性信号",
+      "description": "利用事件相似度天数捕捉新颖事件，新颖事件往往带来更大的价格冲击。",
+      "field_patterns": ["*_event_similarity_days"],
+      "example_fields": ["nws17_d1_event_similarity_days"],
+      "suggested_operators": ["rank", "less", "if_else", "vec_avg"],
+      "alpha_logic": "距离上次相似事件的天数越长，事件越新颖，市场反应越强烈。可用 1/(days+1) 作为新颖性权重。"
+    },
+    {
+      "name": "财报发布情感",
+      "description": "利用BER/BEE分类器专门分析财报相关新闻，捕捉财报季的情感信号。",
+      "field_patterns": ["*_acb", "*_bee"],
+      "example_fields": ["nws17_d1_acb", "nws17_d1_bee"],
+      "suggested_operators": ["ts_delta", "ts_zscore", "rank", "vec_avg"],
+      "alpha_logic": "BER分类器专门处理财报发布新闻，BEE处理财报评估。两者差异可反映市场对财报的不同解读。"
+    },
+    {
+      "name": "并购事件信号",
+      "description": "利用BAM分类器捕捉并购相关新闻的情感变化，并购事件往往带来显著价格波动。",
+      "field_patterns": ["*_qmb"],
+      "example_fields": ["nws17_d1_qmb"],
+      "suggested_operators": ["ts_delta", "ts_zscore", "rank", "vec_avg"],
+      "alpha_logic": "BAM分类器专门识别并购新闻情感。并购新闻情感变化可预测目标公司股价走势。"
+    },
+    {
+      "name": "全球股票情感",
+      "description": "利用PEQ分类器识别全球股票新闻中的正负面词汇，构建更广泛的情感信号。",
+      "field_patterns": ["*_qep"],
+      "example_fields": ["nws17_d1_qep"],
+      "suggested_operators": ["ts_zscore", "ts_delta", "rank", "vec_avg"],
+      "alpha_logic": "PEQ分类器专门识别全球股票文章中的正负面词汇，coverage达93.76%，是高覆盖率的情感指标。"
+    },
+    {
+      "name": "分析师评级变化",
+      "description": "追踪分析师评级升级/降级新闻，捕捉评级变化带来的价格影响。",
+      "field_patterns": ["*_ber"],
+      "example_fields": ["nws17_d1_ber"],
+      "suggested_operators": ["ts_delta", "sign", "rank", "vec_avg"],
+      "alpha_logic": "BER字段记录分析师评级变化（-1降级，0中性，+1升级）。评级变化信号往往带来即时的价格反应。"
+    },
+    {
+      "name": "企业行动公告",
+      "description": "利用BCA分类器分析企业行动公告（分红、回购、分拆等）的情感。",
+      "field_patterns": ["*_bam"],
+      "example_fields": ["nws17_d1_bam"],
+      "suggested_operators": ["rank", "ts_delta", "vec_avg"],
+      "alpha_logic": "BCA分类器专门处理企业行动公告。正面企业行动公告往往带来正向超额收益。"
+    },
+    {
+      "name": "多分类器情感聚合",
+      "description": "综合多个NLP分类器的情感判断，构建更稳健的复合情感信号。",
+      "field_patterns": ["*_acb", "*_bee", "*_bam", "*_qcm"],
+      "example_fields": ["nws17_d1_acb", "nws17_d1_bee", "nws17_d1_qcm"],
+      "suggested_operators": ["ts_mean", "vec_avg", "rank", "sign", "abs"],
+      "alpha_logic": "当多个分类器情感方向一致时，信号更可信。可构建一致性加权因子：sign(f1)*sign(f2)*(|f1|+|f2|)。"
+    },
+    {
+      "name": "相关性加权情感",
+      "description": "利用新闻与实体的相关性评分，对高相关性新闻的情感信号赋予更高权重。",
+      "field_patterns": ["*_relevance", "*_event_relevance"],
+      "example_fields": ["nws17_d1_relevance", "nws17_d1_event_relevance"],
+      "suggested_operators": ["multiply", "if_else", "greater", "rank", "vec_avg"],
+      "alpha_logic": "相关性>75的新闻被认为是显著相关。可构建：if_else(relevance>75, sentiment, 0) 仅保留高相关新闻。"
+    },
+    {
+      "name": "新闻流强度",
+      "description": "分析新闻数量和发布频率的变化，捕捉市场关注度爆发或衰减信号。",
+      "field_patterns": ["*_rp_story_event_count", "*_headline"],
+      "example_fields": ["nws17_d1_rp_story_event_count", "nws17_d1_headline"],
+      "suggested_operators": ["ts_sum", "ts_delta", "ts_mean", "vec_count", "rank"],
+      "alpha_logic": "新闻数量突然增加往往预示重要事件发生。可用 ts_delta(vec_count(field)) 捕捉新闻流爆发。"
+    },
+    {
+      "name": "情感波动率",
+      "description": "分析新闻情感的波动程度，情感波动大的股票可能面临更高的不确定性。",
+      "field_patterns": ["*_ssc", "*_event_sentiment_score"],
+      "example_fields": ["nws17_d1_ssc"],
+      "suggested_operators": ["ts_std_dev", "rank", "vec_avg"],
+      "alpha_logic": "情感波动率高意味着市场对该股票的看法分歧大，可能带来更高的风险溢价或反转机会。"
+    }
+  ],
+  "priority_fields": [
+    {"field_id": "nws17_d1_ssc", "description": "综合情感评分，-1到+1粒度评分，coverage 100%", "coverage": 1.0},
+    {"field_id": "nws17_d1_nip", "description": "市场影响评分，预测2小时内价格影响", "coverage": 1.0},
+    {"field_id": "nws17_d1_qcm", "description": "综合情感（BMQ+BEE+BCA+ANL-CHG组合）", "coverage": 0.9378},
+    {"field_id": "nws17_d1_qmb", "description": "并购新闻情感，BAM分类器专用", "coverage": 0.981},
+    {"field_id": "nws17_d1_qep", "description": "全球股票情感，PEQ分类器识别正负面词汇", "coverage": 0.9376},
+    {"field_id": "nws17_d1_acb", "description": "财报发布情感，BER分类器", "coverage": 0.7416},
+    {"field_id": "nws17_d1_ber", "description": "分析师评级变化，升级/降级信号", "coverage": 0.7601},
+    {"field_id": "nws17_d1_bee", "description": "财报评估情感，BEE分类器", "coverage": 0.5907},
+    {"field_id": "nws17_d1_bam", "description": "企业行动公告情感，BCA分类器", "coverage": 0.2731},
+    {"field_id": "nws17_d1_event_similarity_days", "description": "距上次相似事件天数，衡量新颖性", "coverage": 1.0},
+    {"field_id": "nws17_d1_relevance", "description": "新闻与实体相关性，0-100整数", "coverage": 1.0},
+    {"field_id": "nws17_d1_event_sentiment_score", "description": "事件粒度情感评分，-1到+1", "coverage": 0.9767}
+  ],
+  "field_pairs": [
+    {"field1": "nws17_d1_ssc", "field2": "nws17_d1_nip", "logic": "情感与市场影响组合"},
+    {"field1": "nws17_d1_ssc", "field2": "nws17_d1_relevance", "logic": "相关性加权情感"},
+    {"field1": "nws17_d1_ssc", "field2": "nws17_d1_event_similarity_days", "logic": "新颖性加权情感"},
+    {"field1": "nws17_d1_acb", "field2": "nws17_d1_bee", "logic": "财报发布vs评估情感差异"},
+    {"field1": "nws17_d1_acb", "field2": "nws17_d1_nip", "logic": "财报情感与市场影响"},
+    {"field1": "nws17_d1_qmb", "field2": "nws17_d1_event_similarity_days", "logic": "新颖并购事件信号"},
+    {"field1": "nws17_d1_qep", "field2": "nws17_d1_nip", "logic": "全球股票情感与市场影响"},
+    {"field1": "nws17_d1_ber", "field2": "nws17_d1_nip", "logic": "评级变化与市场影响"}
+  ],
+  "guidance_prompt": "**news17 数据集关键字段说明：**\n\n**核心情感字段：**\n- nws17_d1_ssc: 综合情感评分 (-1到+1)，coverage 100%\n- nws17_d1_event_sentiment_score: 事件粒度情感评分\n- nws17_d1_qcm: 多分类器组合情感 (BMQ+BEE+BCA+ANL-CHG)\n\n**专用分类器情感：**\n- nws17_d1_acb (BER): 财报发布情感，coverage 74%\n- nws17_d1_bee (BEE): 财报评估情感，coverage 59%\n- nws17_d1_bam (BCA): 企业行动公告情感，coverage 27%\n- nws17_d1_qmb (BAM): 并购新闻情感，coverage 98%\n- nws17_d1_qep (PEQ): 全球股票情感，coverage 94%\n- nws17_d1_ber (ANL-CHG): 分析师评级变化，coverage 76%\n\n**影响与相关性：**\n- nws17_d1_nip: 市场影响评分 (预测2小时内价格影响)\n- nws17_d1_relevance: 新闻与实体相关性 (0-100)\n- nws17_d1_event_similarity_days: 距上次相似事件天数\n\n**重要提示：所有字段均为 VECTOR(event) 类型！**\n使用 ts_* 操作符前必须先用 vec_avg/vec_sum/vec_count 转换。\n\n正确示例：\n- rank(vec_avg(nws17_d1_ssc))\n- rank(ts_delta(vec_avg(nws17_d1_ssc), 5))\n- rank(vec_avg(nws17_d1_acb) * abs(vec_avg(nws17_d1_nip)))"
+}

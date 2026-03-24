@@ -354,49 +354,46 @@ def generate_alphas_from_templates_with_hints(
         if not expr_tpl or not isinstance(expr_tpl, str):
             continue
 
-        is_pair = "{field1}" in expr_tpl and "{field2}" in expr_tpl
-        is_multi = "{field3}" in expr_tpl  # 三字段模板
+        # 检测模板中的所有字段占位符
+        import re
+        placeholders = set(re.findall(r'\{(\w+)\}', expr_tpl))
+        field_placeholders = placeholders - {"window", "window1", "window2", "decay", "truncation", "neutralization"}
+        fields_required = template.get("fields_required", 1) if isinstance(template, dict) else 1
 
-        # 根据 field_hints 匹配字段
-        if field_hints:
+        # 判断是否是简单单字段模板（只有 {field} 占位符）
+        is_simple_single_field = len(field_placeholders) == 1 and "field" in field_placeholders
+        # 判断是否是双字段模板
+        is_pair_template = "{field1}" in expr_tpl and "{field2}" in expr_tpl
+        # 判断是否使用自定义占位符（如 {sentiment_field}）
+        uses_custom_placeholders = len(field_placeholders) > 0 and not any(p in ["field", "field1", "field2", "field3"] for p in field_placeholders)
+
+        if field_hints and not is_simple_single_field:
+            # 有 field_hints 且不是简单单字段模板：精确匹配
             matched = match_fields_by_hints(field_hints, numeric_fields)
 
-            if is_multi:
-                # 三字段模板
-                f1 = matched.get("field1", single_fields[0] if single_fields else "")
-                f2 = matched.get("field2", single_fields[1] if len(single_fields) > 1 else "")
-                f3 = matched.get("field3", single_fields[2] if len(single_fields) > 2 else "")
-                if f1 and f2 and f3:
+            if is_pair_template or uses_custom_placeholders:
+                # 双字段或自定义占位符模板：使用精确匹配的字段
+                subs = {"window": windows[0], "window1": windows[0], "window2": windows[0]}
+                all_matched = True
+
+                for ph in field_placeholders:
+                    if ph in matched:
+                        subs[ph] = matched[ph]
+                    else:
+                        all_matched = False
+
+                if all_matched:
                     for w in windows:
-                        sub = _substitute_expression(
-                            expr_tpl,
-                            {"field1": f1, "field2": f2, "field3": f3, "window": w},
-                        )
-                        for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
-                            result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
-            elif is_pair:
-                # 双字段模板
-                f1 = matched.get("field1", single_fields[0] if single_fields else "")
-                f2 = matched.get("field2", single_fields[1] if len(single_fields) > 1 else "")
-                if f1 and f2:
-                    for w in windows:
-                        sub = _substitute_expression(
-                            expr_tpl,
-                            {"field1": f1, "field2": f2, "window": w, "window1": w, "window2": w},
-                        )
-                        for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
-                            result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
-            else:
-                # 单字段模板
-                f = matched.get("field", single_fields[0] if single_fields else "")
-                if f:
-                    for w in windows:
-                        sub = _substitute_expression(expr_tpl, {"field": f, "window": w, "window2": w})
+                        subs["window"] = w
+                        subs["window1"] = w
+                        subs["window2"] = w
+                        sub = _substitute_expression(expr_tpl, subs)
                         for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
                             result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
         else:
-            # 无 field_hints：使用原有逻辑
-            if is_pair:
+            # 无 field_hints 或简单单字段模板：遍历所有推荐字段
+            if is_pair_template:
+                # 双字段模板：遍历所有字段对
                 for (f1, f2) in two_field_pairs:
                     for w in windows:
                         sub = _substitute_expression(
@@ -405,7 +402,8 @@ def generate_alphas_from_templates_with_hints(
                         )
                         for dec, trun, neut in itertools.product(decays, truncations, neutralizations):
                             result.append({"expression": sub, "decay": dec, "truncation": trun, "neutralization": neut})
-            else:
+            elif is_simple_single_field:
+                # 单字段模板：遍历所有推荐字段（关键修改！）
                 for field in single_fields:
                     for w in windows:
                         sub = _substitute_expression(expr_tpl, {"field": field, "window": w, "window2": w})
